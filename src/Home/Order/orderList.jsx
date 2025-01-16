@@ -38,7 +38,7 @@ const OrderList = () => {
       <Row className="justify-content-center">
         <Col md={10}>
           <h2 className="text-center mb-4">قائمة الطلبات</h2>
-          <Table striped bordered hover responsive>
+          <table className="table table-striped table-bordered table-responsive">
             <thead>
               <tr>
                 <th>اسم الطلب</th>
@@ -65,7 +65,7 @@ const OrderList = () => {
                 </tr>
               ))}
             </tbody>
-          </Table>
+          </table>
 
           {/* Modal for editing an order */}
           <Modal show={showModal} onHide={handleClose}>

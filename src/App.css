@@ -227,3 +227,29 @@ body {
     display: none;
   }
 }
+table{
+  text-align: center;
+}
+/* Add this to your existing App.css */
+
+/* Responsive Table Styles */
+.table-responsive {
+  overflow-x: auto; /* Enables horizontal scrolling on small screens */
+}
+
+.table {
+  width: 100%; /* Ensures the table takes full width */
+  margin-bottom: 1rem; /* Space below the table */
+  color: #9e9ea4; /* Text color for better visibility */
+}
+
+.table th, .table td {
+  white-space: nowrap; /* Prevents text wrapping */
+}
+
+@media (max-width: 768px) {
+  .table th, .table td {
+    font-size: 14px; /* Smaller font size for mobile */
+    padding: 8px; /* Adjust padding for smaller screens */
+  }
+}

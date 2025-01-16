@@ -37,13 +37,13 @@ const CategoryList = () => {
     <Container className="my-5 main-container">
       <Row className="justify-content-center">
         <Col md={8}>
-          <h2 className="text-center mb-4">قائمة الفئات</h2>
-          <Button variant="primary" onClick={handleShow} className="mb-3 w-100">إضافة فئة جديدة</Button>
+          <h2 className="text-center mb-4">Category List</h2>
+          <Button variant="primary" onClick={handleShow} className="mb-3 w-100">Add New Category</Button>
           <ul className="list-group">
             {categories.map((category, index) => (
               <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
                 {category}
-                <Button variant="danger" size="sm" onClick={() => handleDelete(category)}>حذف</Button>
+                <Button variant="danger" size="sm" onClick={() => handleDelete(category)}>Delete</Button>
               </li>
             ))}
           </ul>
@@ -51,21 +51,21 @@ const CategoryList = () => {
           {/* Modal for adding a new category */}
           <Modal show={showModal} onHide={handleClose}>
             <Modal.Header closeButton>
-              <Modal.Title>إضافة فئة جديدة</Modal.Title>
+              <Modal.Title>Add New Category</Modal.Title>
             </Modal.Header>
             <Modal.Body>
               <Form onSubmit={handleSubmit}>
                 <Form.Group controlId="formNewCategory">
-                  <Form.Label>اسم الفئة</Form.Label>
+                  <Form.Label>Category Name</Form.Label>
                   <Form.Control 
                     type="text" 
-                    placeholder="أدخل اسم الفئة" 
+                    placeholder="Enter category name" 
                     value={newCategory} 
                     onChange={(e) => setNewCategory(e.target.value)} 
                     required 
                   />
                 </Form.Group>
-                <Button variant="primary" type="submit" className="mt-3 w-100">إضافة</Button>
+                <Button variant="primary" type="submit" className="mt-3 w-100">Add</Button>
               </Form>
             </Modal.Body>
           </Modal>

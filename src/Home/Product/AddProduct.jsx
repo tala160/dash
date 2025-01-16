@@ -28,20 +28,18 @@ const AddProduct = ({ addProduct }) => {
   };
 
   return (
-
-    <div className="container mt-5">
-
+    <div className="main-container mt-5">
       <Card className="shadow-lg" style={{ backgroundColor: '#f8f9fa' }}> {/* Light background color */}
         <Card.Body>
-          <h1 className="text-center mb-4" style={{ color: '#007bff' }}>إضافة منتج جديد</h1> {/* Blue text color */}
+          <h1 className="text-center mb-4" style={{ color: '#007bff' }}>Add New Product</h1> {/* Blue text color */}
           <Form onSubmit={handleSubmit}>
             <Row>
               <Col md={6} className="mb-3">
                 <Form.Group controlId="formProductName">
-                  <Form.Label>اسم المنتج</Form.Label>
+                  <Form.Label>Product Name</Form.Label>
                   <Form.Control 
                     type="text" 
-                    placeholder="أدخل اسم المنتج" 
+                    placeholder="Enter product name" 
                     value={productName} 
                     onChange={(e) => setProductName(e.target.value)} 
                     required
@@ -51,10 +49,10 @@ const AddProduct = ({ addProduct }) => {
 
               <Col md={6} className="mb-3">
                 <Form.Group controlId="formProductPrice">
-                  <Form.Label>السعر</Form.Label>
+                  <Form.Label>Price</Form.Label>
                   <Form.Control 
                     type="text" 
-                    placeholder="أدخل السعر" 
+                    placeholder="Enter price" 
                     value={productPrice} 
                     onChange={(e) => setProductPrice(e.target.value)} 
                     required
@@ -67,7 +65,7 @@ const AddProduct = ({ addProduct }) => {
                   <Form.Label>QA</Form.Label>
                   <Form.Control 
                     type="text" 
-                    placeholder="أدخل QA" 
+                    placeholder="Enter QA" 
                     value={productQA} 
                     onChange={(e) => setProductQA(e.target.value)} 
                     required
@@ -77,10 +75,10 @@ const AddProduct = ({ addProduct }) => {
 
               <Col md={6} className="mb-3">
                 <Form.Group controlId="formProductCategory">
-                  <Form.Label>فئة</Form.Label>
+                  <Form.Label>Category</Form.Label>
                   <Form.Control 
                     type="text" 
-                    placeholder="أدخل الفئة" 
+                    placeholder="Enter category" 
                     value={productCategory} 
                     onChange={(e) => setProductCategory(e.target.value)} 
                     required
@@ -89,8 +87,7 @@ const AddProduct = ({ addProduct }) => {
               </Col>
             </Row>
 
-            
-            <Button variant="primary" type="submit" className="w-100">إضافة المنتج</Button> {/* Primary button color */}
+            <Button variant="primary" type="submit" className="w-100">Add Product</Button> {/* Primary button color */}
           </Form>
         </Card.Body>
       </Card>

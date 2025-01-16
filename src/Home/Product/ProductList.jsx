@@ -47,17 +47,17 @@ const ProductList = () => {
   };
 
   return (
-    <div className="main-container mt-5  "  >
-      <h1 className="text-center mb-4">قائمة المنتجات</h1>
-      <Link to="/addproduct" className="btn btn-success mb-3">إضافة منتج جديد</Link>
-      <table className="table table-striped table-bordered">
+    <div className="main-container mt-5">
+      <h1 className="text-center mb-4">Product List</h1>
+      <Link to="/addproduct" className="btn btn-success mb-3">Add New Product</Link>
+      <table className="table table-striped table-bordered table-responsive">
         <thead className="table-dark">
           <tr>
-            <th>اسم المنتج</th>
-            <th>السعر</th>
+            <th>Product Name</th>
+            <th>Price</th>
             <th>QA</th> {/* Added QA column */}
-            <th>فئة</th> {/* Added Category column */}
-            <th>الإجراءات</th>
+            <th>Category</th> {/* Added Category column */}
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -68,8 +68,8 @@ const ProductList = () => {
               <td>{product.QA}</td> {/* Displaying QA */}
               <td>{product.category}</td> {/* Displaying Category */}
               <td>
-                <button className="btn btn-danger me-2" onClick={() => handleDelete(product.id)}>حذف</button>
-                <button className="btn btn-warning" onClick={() => handleShow(product)}>تعديل</button>
+                <button className="btn btn-danger me-2" onClick={() => handleDelete(product.id)}>Delete</button>
+                <button className="btn btn-warning" onClick={() => handleShow(product)}>Edit</button>
               </td>
             </tr>
           ))}
@@ -79,15 +79,15 @@ const ProductList = () => {
       {/* Modal for editing a product */}
       <Modal show={showModal} onHide={handleClose}>
         <Modal.Header closeButton>
-          <Modal.Title>تعديل المنتج</Modal.Title>
+          <Modal.Title>Edit Product</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>
             <Form.Group controlId="formProductName">
-              <Form.Label>اسم المنتج</Form.Label>
+              <Form.Label>Product Name</Form.Label>
               <Form.Control 
                 type="text" 
-                placeholder="أدخل اسم المنتج" 
+                placeholder="Enter product name" 
                 name="name" 
                 value={currentProduct.name} 
                 onChange={handleChange} 
@@ -95,10 +95,10 @@ const ProductList = () => {
             </Form.Group>
 
             <Form.Group controlId="formProductPrice">
-              <Form.Label>السعر</Form.Label>
+              <Form.Label>Price</Form.Label>
               <Form.Control 
                 type="text" 
-                placeholder="أدخل السعر" 
+                placeholder="Enter price" 
                 name="price" 
                 value={currentProduct.price} 
                 onChange={handleChange} 
@@ -110,7 +110,7 @@ const ProductList = () => {
               <Form.Label>QA</Form.Label>
               <Form.Control 
                 type="text" 
-                placeholder="أدخل QA" 
+                placeholder="Enter QA" 
                 name="QA" 
                 value={currentProduct.QA} 
                 onChange={handleChange} 
@@ -119,10 +119,10 @@ const ProductList = () => {
 
             {/* New input field for Category */}
             <Form.Group controlId="formProductCategory">
-              <Form.Label>فئة</Form.Label>
+              <Form.Label>Category</Form.Label>
               <Form.Control 
                 type="text" 
-                placeholder="أدخل الفئة" 
+                placeholder="Enter category" 
                 name="category" 
                 value={currentProduct.category} 
                 onChange={handleChange} 
@@ -134,11 +134,11 @@ const ProductList = () => {
         <Modal.Footer>
           {/* Button to cancel changes and close modal */}
           <Button variant="secondary" onClick={handleClose}>
-            إلغاء
+            Cancel
           </Button>
           {/* Button to save changes made in the modal */}
           <Button variant="primary" onClick={handleSaveChanges}>
-            حفظ التغييرات
+            Save Changes
           </Button>
         </Modal.Footer>
       </Modal>
