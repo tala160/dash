@@ -1,77 +1,69 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Container, Row, Col, Spinner } from 'react-bootstrap'
-import { ToastContainer } from 'react-toastify';
-import notify from '../../Hook/useNotifaction';
-// import { createNewUser, forgetPassword, loginUser } from '../../redux/action/AuthAction';
-import { useNavigate } from 'react-router-dom';
+import { forgetPassword } from '../../redux/authSlice';
+import { Spinner } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
+import './login.css'; // تأكد من استيراد الأنماط
 
-const ForgetPasswordPage = () => {
-    const dispatch = useDispatch();
-    const navigate = useNavigate();
-    const [email, setEmail] = useState('')
-    const [loading, setLoading] = useState(true)
+const ForgetPassword = () => {
+  const [email, setEmail] = useState('');
+  const dispatch = useDispatch();
+  const [loading, setLoading] = useState(false);
+  const [isPress, setIsPress] = useState(false);
 
+  const forgetPasswordSuccess = useSelector((state) => state.auth.forgetPasswordSuccess);
+  const errorMessage = useSelector((state) => state.auth.error);
 
-    const OnChangeEmail = (e) => {
-        
-        setEmail(e.target.value)
-    }
+  const onSubmit = async (e) => {
+    e.preventDefault(); // منع إعادة تحميل الصفحة
+    setIsPress(true);
+    setLoading(true);
+    await dispatch(forgetPassword(email));
+    setLoading(false);
+    setIsPress(false);
+    setEmail(''); // مسح حقل الإدخال بعد الإرسال
+  };
 
-    const onSubmit = async () => {
-        if (email === "") {
-            notify("من فضلك ادخل الايميل", "error")
-            return
-        }
-        localStorage.setItem("user-email" ,email)
-        setLoading(true)
-        await dispatch(forgetPassword({
-            email,
-        }))
-        setLoading(false)
-    }
+  return (
+    <div className="addUser">
+      <h3>نسيان كلمة المرور</h3>
+      <form className="addUserForm" onSubmit={onSubmit}>
+        <div className="inputGroup">
+          <label htmlFor="email">البريد الإلكتروني:</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            autoComplete="off"
+            placeholder="أدخل بريدك الإلكتروني"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)} // تحديث حالة البريد الإلكتروني
+          />
+          <button type="submit" className="btn btn-primary">
+            إرسال رابط إعادة تعيين كلمة المرور
+          </button>
+        </div>
+      </form>
 
-    // const res = useSelector(state => state.authReducer.forgetPassword)
+      {isPress && loading && (
+        <Spinner animation="border" role="status" />
+      )}
 
-    // useEffect(() => {
-    //     if (loading === false) {
-    //         if (res) {
-    //             console.log(res)
-    //             if (res.data.status === "Success") {
-    //                 notify("تم ارسال الكود للايميل بنجاح", "success")
-    //                 setTimeout(() => {
-    //                     navigate("/user/verify-code")
-    //                 }, 1000);
-    //             }
-    //             if (res.data.status === "fail") {
-    //                 notify("هذا الحساب غير موجود لدينا", "error")
-    //             }
-    //         }
-    //     }
-    // }, [loading])
+      {forgetPasswordSuccess && (
+        <p style={{ color: 'green' }}>تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني.</p>
+      )}
+      {errorMessage && (
+        <p style={{ color: 'red' }}>{errorMessage}</p>
+      )}
 
+      <div className="login">
+        <p>هل لديك حساب؟ </p>
+        <Link to="/" className="btn btn-success">
+          تسجيل الدخول
+        </Link>
+      </div>
+    </div>
+  );
+};
 
-    return (
-        <Container style={{ minHeight: "690px" }}>
-            <Row className="py-5 d-flex justify-content-center ">
-                <Col sm="12" className="d-flex flex-column ">
-                    <label className="mx-auto title-login">نسيت كلمة السر</label>
-                    <input
-                        value={email}
-                        onChange={OnChangeEmail}
-                        placeholder="ادخل الايميل..."
-                        type="email"
-                        className="user-input my-3 text-center mx-auto"
-                    />
-
-                    <button onClick={onSubmit} className="btn-login mx-auto mt-2">ارسال الكود</button>
-
-                </Col>
-
-            </Row>
-            <ToastContainer />
-        </Container>
-    )
-}
-
-export default ForgetPasswordPage
+export default ForgetPassword;
