@@ -1,0 +1,65 @@
+.addUser {
+  background-color: white;
+  width: 90%; /* جعل العرض 90% ليتناسب مع الشاشات الصغيرة */
+  max-width: 500px; /* تحديد أقصى عرض للنموذج */
+  margin: 50px auto; /* توازن الهوامش */
+  padding: 40px;
+  border-radius: 10px;
+  box-shadow: 1px 1px 8px rgba(0, 0, 0, 0.065);
+  grid-area: login;
+}
+
+.addUserForm .inputGroup {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.addUserForm .inputGroup label {
+  margin-top: 10px;
+}
+
+.addUserForm .inputGroup input {
+  margin-top: 5px;
+  padding: 10px;
+}
+
+.inputGroup button {
+  margin-top: 10px;
+}
+
+.login {
+  margin-top: 30px;
+  text-align: center;
+}
+
+.login .btn.btn-success {
+  width: auto; /* تغيير العرض إلى تلقائي */
+}
+
+.addUser h3 {
+  text-align: center;
+  font-weight: bold;
+  color: darkcyan;
+  text-transform: uppercase;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+    .addUser {
+        padding: 20px; /* تقليل الحشو في الشاشات الصغيرة */
+    }
+
+    .addUser h3 {
+        font-size: 1.5em; /* تغيير حجم الخط في الشاشات الصغيرة */
+    }
+    
+    .addUserForm .inputGroup input {
+        padding: 8px; /* تقليل الحشو في الحقول */
+    }
+    
+    .inputGroup button {
+        padding: 10px; /* زيادة حجم الزر لسهولة الاستخدام */
+    }
+}
