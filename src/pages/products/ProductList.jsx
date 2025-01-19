@@ -1,29 +1,31 @@
-// src/ProductList.jsx
 import { useEffect, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Modal, Button, Form } from "react-bootstrap";
-import { Link } from "react-router-dom";
-import { GetAllProducts } from "../../Api/products.api";
+import { GetAllProducts } from "../../api/products.api";
 
 const ProductList = () => {
   // State to hold the list of products with additional fields
   const [products, setProducts] = useState([
-    { id: 1, title: "Product 1", price: "$10", QA: "5", category: "clothes" },
-    { id: 2, title: "Product 2", price: "$20", QA: "5", category: "clothes" },
-    { id: 3, title: "Product 3", price: "$30", QA: "5", category: "clothes" },
+    // { id: 1, title: "Product 1", price: "$10", qa: "5", category: "clothes" },
+    // { id: 2, title: "Product 2", price: "$20", qa: "5", category: "clothes" },
+    // { id: 3, title: "Product 3", price: "$30", qa: "5", category: "clothes" },
   ]);
 
   // State for editing a product
   const [showModal, setShowModal] = useState(false);
   const [currentProduct, setCurrentProduct] = useState({
     id: null,
-    name: "",
+    title: "",
     price: "",
-    QA: "",
+    qa: "",
     category: "",
+    isAddVisible: false,
   });
   const [loading, setLoading] = useState(true);
 
+  const handleAddVisible = () => {
+    setCurrentProduct({ ...currentProduct, isAddVisible: true });
+  };
   // Function to delete a product by its ID
   const handleDelete = (id) => {
     setProducts(products.filter((product) => product.id !== id));
@@ -72,12 +74,27 @@ const ProductList = () => {
 
     fetchProducts();
   }, []);
+
+  const handleAddProduct = (e) => {
+    e.preventDefault();
+    console.log(e);
+    setProducts([...products, { ...currentProduct, id: products.length + 1 }]);
+    setCurrentProduct({
+      title: "",
+      price: "",
+      qa: "",
+      category: "",
+    });
+    handleClose(); // Close modal after adding
+  };
+
   return (
     <div className="main-container mt-5">
       <h1 className="text-center mb-4">Product List</h1>
-      <Link to="/addproduct" className="btn btn-success mb-3">
+      {/* <Link to="/addproduct" className="btn btn-success mb-3">
         Add New Product
-      </Link>
+      </Link> */}
+      <button onClick={handleAddVisible}>Add New Product</button>
       <table className="table table-striped table-bordered table-responsive">
         <thead className="table-dark">
           <tr>
@@ -93,7 +110,7 @@ const ProductList = () => {
             <tr key={product.id}>
               <td>{product.title}</td>
               <td>{product.price}</td>
-              <td>{product.QA}</td> {/* Displaying QA */}
+              <td>{product.qa}</td> {/* Displaying QA */}
               <td>{product.category}</td> {/* Displaying Category */}
               <td>
                 <button
@@ -114,6 +131,78 @@ const ProductList = () => {
         </tbody>
       </table>
 
+      {/* add */}
+      <Modal show={currentProduct.isAddVisible} onHide={handleClose}>
+        <Modal.Header closeButton>
+          <Modal.Title>Add New Category</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form onSubmit={handleAddProduct}>
+            <Form.Group controlId="formNewCategory">
+              <Form.Label>Product Name</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Enter product name"
+                value={currentProduct.title}
+                onChange={(e) =>
+                  setCurrentProduct({
+                    ...currentProduct,
+                    title: e.target.value,
+                  })
+                }
+                required
+              />
+              <Form.Label>Category Name</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Enter category name"
+                value={currentProduct.category}
+                onChange={(e) =>
+                  setCurrentProduct({
+                    ...currentProduct,
+                    category: e.target.value,
+                  })
+                }
+                required
+              />
+              <Form.Label>Price</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Enter price"
+                value={currentProduct.price}
+                onChange={(e) =>
+                  setCurrentProduct({
+                    ...currentProduct,
+                    price: e.target.value,
+                  })
+                }
+                required
+              />
+              <Form.Label>QA</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Enter QA"
+                value={currentProduct.qa}
+                onChange={(e) =>
+                  setCurrentProduct({ ...currentProduct, qa: e.target.value })
+                }
+                required
+              />
+            </Form.Group>
+            <Button
+              onClick={() =>
+                setCurrentProduct({ ...currentProduct, isAddVisible: false })
+              }
+              variant="primary"
+              type="submit"
+              className="mt-3 w-100"
+            >
+              Add
+            </Button>
+          </Form>
+        </Modal.Body>
+      </Modal>
+
       {/* Modal for editing a product */}
       <Modal show={showModal} onHide={handleClose}>
         <Modal.Header closeButton>
@@ -126,8 +215,8 @@ const ProductList = () => {
               <Form.Control
                 type="text"
                 placeholder="Enter product name"
-                name="name"
-                value={currentProduct.name}
+                name="title"
+                value={currentProduct.title}
                 onChange={handleChange}
               />
             </Form.Group>
@@ -150,7 +239,7 @@ const ProductList = () => {
                 type="text"
                 placeholder="Enter QA"
                 name="QA"
-                value={currentProduct.QA}
+                value={currentProduct.qa}
                 onChange={handleChange}
               />
             </Form.Group>
