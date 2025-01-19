@@ -1,9 +1,9 @@
-import React, { useState , useEffect } from "react";
+import { useState } from "react";
 import "./login.css";
-import { Link } from "react-router-dom";
-import {  Spinner } from 'react-bootstrap';
-import { useDispatch, useSelector } from 'react-redux';
-import { loginUser } from '../../redux/authSlice';
+import { Link, useNavigate } from "react-router-dom";
+import { Spinner } from "react-bootstrap";
+import { useDispatch } from "react-redux";
+import { loginUser } from "../../redux/authSlice";
 
 // import notify from '../../Home/Hook/useNotifaction';
 const Login = () => {
@@ -12,31 +12,30 @@ const Login = () => {
   const [loading, setLoading] = useState(true);
   const [isPress, setIsPress] = useState(false);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const onChangeEmail = (e) => {
-    setEmail(e.target.value)}
+    setEmail(e.target.value);
+  };
 
   const onChangePassword = (e) => {
-    setPassword(e.target.value)}
+    setPassword(e.target.value);
+  };
 
+  const onSubmit = async () => {
+    setIsPress(true);
+    setLoading(true);
+    dispatch(loginUser({ email, password }));
 
-    const onSubmit = async () => {
-      setIsPress(true)
-      setLoading(true)
-      dispatch(loginUser({ email, password }));
-
-      setLoading(false)
-      setIsPress(false)
-  }
-
-
+    setLoading(false);
+    setIsPress(false);
     // Check if credentials are correct
     if (email === "test@gmail.com" && password === "test") {
       navigate("../../home"); // Redirect to homepage
     } else {
-     // Show an alert for invalid credentials
+      // Show an alert for invalid credentials
     }
- 
+  };
 
   return (
     <div className="addUser ">
@@ -69,23 +68,26 @@ const Login = () => {
         </div>
       </form>
       <label className="mx-auto my-4">
-
-      <Link to="/forgetPassword" style={{ textDecoration: 'none', color: 'red' }}>
+        <Link
+          to="/forgetPassword"
+          style={{ textDecoration: "none", color: "red" }}
+        >
           هل نسيت كلمه السر
-       </Link>
+        </Link>
       </label>
 
-      {isPress === true ? (loading === true ? (<Spinner animation="border" role="status">
-      </Spinner>) : null) : null}
-
+      {isPress === true ? (
+        loading === true ? (
+          <Spinner animation="border" role="status"></Spinner>
+        ) : null
+      ) : null}
 
       <div className="login">
-        <p>Don't have an Account? </p>
+        <p>Don&apos;t have an Account? </p>
         <Link to="/" className="btn btn-success">
           Sign Up
         </Link>
       </div>
-  
     </div>
   );
 };
