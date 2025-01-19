@@ -1,72 +1,104 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { Modal, Button, Form } from "react-bootstrap";
+import { Button } from "react-bootstrap";
 import { GetAllProducts } from "../../api/products.api";
+import ProductModal from "../../components/Modals/ProductModal";
+import DeleteModal from "../../components/Modals/DeleteModal";
 
 const ProductList = () => {
-  // State to hold the list of products with additional fields
-  const [products, setProducts] = useState([
-    // { id: 1, title: "Product 1", price: "$10", qa: "5", category: "clothes" },
-    // { id: 2, title: "Product 2", price: "$20", qa: "5", category: "clothes" },
-    // { id: 3, title: "Product 3", price: "$30", qa: "5", category: "clothes" },
-  ]);
-
-  // State for editing a product
-  const [showModal, setShowModal] = useState(false);
+  const [products, setProducts] = useState([]);
   const [currentProduct, setCurrentProduct] = useState({
     id: null,
     title: "",
     price: "",
     qa: "",
     category: "",
-    isAddVisible: false,
   });
+  const [productToDelete, setProductToDelete] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isEdit, setIsEdit] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const handleAddVisible = () => {
-    setCurrentProduct({ ...currentProduct, isAddVisible: true });
-  };
-  // Function to delete a product by its ID
-  const handleDelete = (id) => {
-    setProducts(products.filter((product) => product.id !== id));
+  const validateProduct = (product) => {
+    if (!product.title || !product.price || !product.qa || !product.category) {
+      alert("All fields are required.");
+      return false;
+    }
+    if (isNaN(product.price)) {
+      alert("Price must be a number.");
+      return false;
+    }
+    return true;
   };
 
-  // Function to show the modal for editing a product
-  const handleShow = (product) => {
-    setCurrentProduct(product);
+  const handleShowModal = (edit, product = null) => {
+    setIsEdit(edit);
+    setCurrentProduct(
+      product || { id: null, title: "", price: "", qa: "", category: "" }
+    );
     setShowModal(true);
   };
 
-  // Function to close the modal
-  const handleClose = () => {
+  const handleCloseModal = () => {
     setShowModal(false);
+    setCurrentProduct({
+      id: null,
+      title: "",
+      price: "",
+      qa: "",
+      category: "",
+    });
   };
 
-  // Function to save changes made to the current product
-  const handleSaveChanges = () => {
-    setProducts(
-      products.map((product) =>
-        product.id === currentProduct.id ? currentProduct : product
-      )
-    );
-    handleClose(); // Close the modal after saving changes
+  const handleCloseDeleteModal = () => {
+    setShowDeleteModal(false);
+    setProductToDelete(null);
   };
 
-  // Function to handle changes in input fields of the modal
+  const handleShowDeleteModal = (id) => {
+    setProductToDelete(id);
+    setShowDeleteModal(true);
+  };
+
   const handleChange = (e) => {
-    const { name, value } = e.target; // Get input name and value
-    setCurrentProduct({ ...currentProduct, [name]: value }); // Update current product state
+    const { name, value } = e.target;
+    setCurrentProduct((prevProduct) => ({
+      ...prevProduct,
+      [name]: value,
+    }));
+  };
+
+  const handleSaveProduct = (e) => {
+    e.preventDefault();
+    if (!validateProduct(currentProduct)) return;
+    if (isEdit) {
+      setProducts((prev) =>
+        prev.map((p) => (p.id === currentProduct.id ? currentProduct : p))
+      );
+    } else {
+      setProducts((prev) => [
+        ...prev,
+        { ...currentProduct, id: Math.random(10) },
+      ]);
+    }
+    handleCloseModal();
+  };
+
+  const handleDelete = () => {
+    setProducts((prev) =>
+      prev.filter((product) => product.id !== productToDelete)
+    );
+    handleCloseDeleteModal();
   };
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const response = await GetAllProducts();
-        setProducts(response.data); // Assuming `response.data` contains the product list
+        setProducts(response.data);
       } catch (err) {
-        console.log(
-          err.message || "An error occurred while fetching products."
-        );
+        console.error("Error fetching products:", err.message);
       } finally {
         setLoading(false);
       }
@@ -75,199 +107,68 @@ const ProductList = () => {
     fetchProducts();
   }, []);
 
-  const handleAddProduct = (e) => {
-    e.preventDefault();
-    console.log(e);
-    setProducts([...products, { ...currentProduct, id: products.length + 1 }]);
-    setCurrentProduct({
-      title: "",
-      price: "",
-      qa: "",
-      category: "",
-    });
-    handleClose(); // Close modal after adding
-  };
+  const renderedProducts = useMemo(() => {
+    return products.map((product) => (
+      <tr key={product.id}>
+        <td>{product.title}</td>
+        <td>{product.price}</td>
+        <td>{product.qa}</td>
+        <td>{product.category}</td>
+        <td>
+          <Button
+            variant="warning"
+            className="me-2"
+            onClick={() => handleShowModal(true, product)}
+          >
+            Edit
+          </Button>
+          <Button
+            variant="danger"
+            onClick={() => handleShowDeleteModal(product.id)}
+          >
+            Delete
+          </Button>
+        </td>
+      </tr>
+    ));
+  }, [products]);
 
   return (
     <div className="main-container mt-5">
       <h1 className="text-center mb-4">Product List</h1>
-      {/* <Link to="/addproduct" className="btn btn-success mb-3">
+      <Button onClick={() => handleShowModal(false)} className="mb-3">
         Add New Product
-      </Link> */}
-      <button onClick={handleAddVisible}>Add New Product</button>
-      <table className="table table-striped table-bordered table-responsive">
-        <thead className="table-dark">
-          <tr>
-            <th>Product Name</th>
-            <th>Price</th>
-            <th>QA</th> {/* Added QA column */}
-            <th>Category</th> {/* Added Category column */}
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {products.map((product) => (
-            <tr key={product.id}>
-              <td>{product.title}</td>
-              <td>{product.price}</td>
-              <td>{product.qa}</td> {/* Displaying QA */}
-              <td>{product.category}</td> {/* Displaying Category */}
-              <td>
-                <button
-                  className="btn btn-danger me-2"
-                  onClick={() => handleDelete(product.id)}
-                >
-                  Delete
-                </button>
-                <button
-                  className="btn btn-warning"
-                  onClick={() => handleShow(product)}
-                >
-                  Edit
-                </button>
-              </td>
+      </Button>
+      {loading ? (
+        <p>Loading...</p>
+      ) : (
+        <table className="table table-striped table-bordered table-responsive">
+          <thead className="table-dark">
+            <tr>
+              <th>Product Name</th>
+              <th>Price</th>
+              <th>QA</th>
+              <th>Category</th>
+              <th>Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>{renderedProducts}</tbody>
+        </table>
+      )}
+      <ProductModal
+        show={showModal}
+        isEdit={isEdit}
+        product={currentProduct}
+        handleChange={handleChange}
+        handleCloseModal={handleCloseModal}
+        handleSaveProduct={handleSaveProduct}
+      />
 
-      {/* add */}
-      <Modal show={currentProduct.isAddVisible} onHide={handleClose}>
-        <Modal.Header closeButton>
-          <Modal.Title>Add New Category</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form onSubmit={handleAddProduct}>
-            <Form.Group controlId="formNewCategory">
-              <Form.Label>Product Name</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter product name"
-                value={currentProduct.title}
-                onChange={(e) =>
-                  setCurrentProduct({
-                    ...currentProduct,
-                    title: e.target.value,
-                  })
-                }
-                required
-              />
-              <Form.Label>Category Name</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter category name"
-                value={currentProduct.category}
-                onChange={(e) =>
-                  setCurrentProduct({
-                    ...currentProduct,
-                    category: e.target.value,
-                  })
-                }
-                required
-              />
-              <Form.Label>Price</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter price"
-                value={currentProduct.price}
-                onChange={(e) =>
-                  setCurrentProduct({
-                    ...currentProduct,
-                    price: e.target.value,
-                  })
-                }
-                required
-              />
-              <Form.Label>QA</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter QA"
-                value={currentProduct.qa}
-                onChange={(e) =>
-                  setCurrentProduct({ ...currentProduct, qa: e.target.value })
-                }
-                required
-              />
-            </Form.Group>
-            <Button
-              onClick={() =>
-                setCurrentProduct({ ...currentProduct, isAddVisible: false })
-              }
-              variant="primary"
-              type="submit"
-              className="mt-3 w-100"
-            >
-              Add
-            </Button>
-          </Form>
-        </Modal.Body>
-      </Modal>
-
-      {/* Modal for editing a product */}
-      <Modal show={showModal} onHide={handleClose}>
-        <Modal.Header closeButton>
-          <Modal.Title>Edit Product</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form>
-            <Form.Group controlId="formProductName">
-              <Form.Label>Product Name</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter product name"
-                name="title"
-                value={currentProduct.title}
-                onChange={handleChange}
-              />
-            </Form.Group>
-
-            <Form.Group controlId="formProductPrice">
-              <Form.Label>Price</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter price"
-                name="price"
-                value={currentProduct.price}
-                onChange={handleChange}
-              />
-            </Form.Group>
-
-            {/* New input field for QA */}
-            <Form.Group controlId="formProductQA">
-              <Form.Label>QA</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter QA"
-                name="QA"
-                value={currentProduct.qa}
-                onChange={handleChange}
-              />
-            </Form.Group>
-
-            {/* New input field for Category */}
-            <Form.Group controlId="formProductCategory">
-              <Form.Label>Category</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter category"
-                name="category"
-                value={currentProduct.category}
-                onChange={handleChange}
-              />
-            </Form.Group>
-          </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          {/* Button to cancel changes and close modal */}
-          <Button variant="secondary" onClick={handleClose}>
-            Cancel
-          </Button>
-          {/* Button to save changes made in the modal */}
-          <Button variant="primary" onClick={handleSaveChanges}>
-            Save Changes
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      <DeleteModal
+        show={showDeleteModal}
+        handleCloseModal={handleCloseDeleteModal}
+        handleDelete={handleDelete}
+      />
     </div>
   );
 };
