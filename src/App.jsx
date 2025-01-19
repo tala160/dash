@@ -6,17 +6,16 @@ import {
   Route,
   useLocation,
 } from "react-router-dom";
-import Signup from "./Log/signup/Signup";
-import Login from "./Log/login/Login";
-import ForgetPassword from "./Log/login/ForgetPassword";
-import ResetPassword from "./Log/login/resetPassword";
-import ProductList from "./Home/Product/ProductList";
-import Category from "./Home/Category/CategoryList";
-import Sidebar from "./Home/Sidebar";
-import Header from "./Home/Header";
-import Home from "./Home/Home";
-import OrderList from "./Home/Order/orderList";
-import AddProduct from "./Home/Product/AddProduct";
+import Signup from "./auth/signup/Signup";
+import Login from "./auth/login/Login";
+import ForgetPassword from "./auth/login/ForgetPassword";
+import ResetPassword from "./auth/login/resetPassword";
+import ProductList from "./pages/products/ProductList";
+import Category from "./pages/categories/CategoryList";
+import Sidebar from "./components/Sidebar";
+import Header from "./components/Header";
+import Home from "./pages/Home";
+import OrderList from "./pages/orders/orderList";
 
 function App() {
   const [openSidebarToggle, setOpenSidebarToggle] = useState(false);
@@ -70,7 +69,6 @@ const Content = ({ OpenSidebar, openSidebarToggle }) => {
         <Route path="/resetPassword" element={<ResetPassword />} />
         <Route path="/home" element={<Home />} />
         <Route path="/products" element={<ProductList />} />
-        <Route path="/addproduct" element={<AddProduct />} />
         <Route path="/categories" element={<Category />} />
         <Route path="/orders" element={<OrderList />} />
       </Routes>

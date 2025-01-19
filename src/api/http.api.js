@@ -5,7 +5,7 @@ import {
   readToken,
   deleteToken,
   deleteUser,
-} from "../Services/localStorage.service";
+} from "../services/localStorage.service";
 import { logout } from "../redux/authSlice";
 
 export const httpApi = axios.create({
