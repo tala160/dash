@@ -1,12 +1,19 @@
 import { useEffect, useState, useMemo } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { Button } from "react-bootstrap";
+import { Button, Form } from "react-bootstrap";
 import { GetAllProducts } from "../../api/products.api";
 import ProductModal from "../../components/Modals/ProductModal";
 import DeleteModal from "../../components/Modals/DeleteModal";
+import Pagination from '../../components/Pagination';
+import { FaEdit, FaTrash } from 'react-icons/fa'; 
 
 const ProductList = () => {
   const [products, setProducts] = useState([]);
+  const [searchQuery, setSearchQuery] = useState(""); // Search state
+  
+  const itemsPerPage = 5;
+  const [currentPage, setCurrentPage] = useState(1);
+  
   const [currentProduct, setCurrentProduct] = useState({
     id: null,
     title: "",
@@ -14,12 +21,13 @@ const ProductList = () => {
     qa: "",
     category: "",
   });
+  
   const [productToDelete, setProductToDelete] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
   const [loading, setLoading] = useState(true);
-
+  
   const validateProduct = (product) => {
     if (!product.title || !product.price || !product.qa || !product.category) {
       alert("All fields are required.");
@@ -31,7 +39,7 @@ const ProductList = () => {
     }
     return true;
   };
-
+  
   const handleShowModal = (edit, product = null) => {
     setIsEdit(edit);
     setCurrentProduct(
@@ -39,7 +47,7 @@ const ProductList = () => {
     );
     setShowModal(true);
   };
-
+  
   const handleCloseModal = () => {
     setShowModal(false);
     setCurrentProduct({
@@ -50,17 +58,17 @@ const ProductList = () => {
       category: "",
     });
   };
-
+  
   const handleCloseDeleteModal = () => {
     setShowDeleteModal(false);
     setProductToDelete(null);
   };
-
+  
   const handleShowDeleteModal = (id) => {
     setProductToDelete(id);
     setShowDeleteModal(true);
   };
-
+  
   const handleChange = (e) => {
     const { name, value } = e.target;
     setCurrentProduct((prevProduct) => ({
@@ -68,10 +76,11 @@ const ProductList = () => {
       [name]: value,
     }));
   };
-
+  
   const handleSaveProduct = (e) => {
     e.preventDefault();
     if (!validateProduct(currentProduct)) return;
+    
     if (isEdit) {
       setProducts((prev) =>
         prev.map((p) => (p.id === currentProduct.id ? currentProduct : p))
@@ -79,12 +88,13 @@ const ProductList = () => {
     } else {
       setProducts((prev) => [
         ...prev,
-        { ...currentProduct, id: Math.random(10) },
+        { ...currentProduct, id: Date.now() }, // Use Date.now() for unique ID
       ]);
     }
+    
     handleCloseModal();
   };
-
+  
   const handleDelete = () => {
     setProducts((prev) =>
       prev.filter((product) => product.id !== productToDelete)
@@ -92,6 +102,24 @@ const ProductList = () => {
     handleCloseDeleteModal();
   };
 
+  // Pagination
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  }; 
+  
+  // Products for current page
+  const currentProducts = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    
+    // Filter products based on search query
+    const filteredProducts = products.filter(product =>
+      product.title.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    return filteredProducts.slice(start, start + itemsPerPage); // Return filtered products
+  }, [currentPage, products, searchQuery]);
+
+  
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -107,8 +135,9 @@ const ProductList = () => {
     fetchProducts();
   }, []);
 
+  // Rendered Products
   const renderedProducts = useMemo(() => {
-    return products.map((product) => (
+    return currentProducts.map((product) => (
       <tr key={product.id}>
         <td>{product.title}</td>
         <td>{product.price}</td>
@@ -120,41 +149,75 @@ const ProductList = () => {
             className="me-2"
             onClick={() => handleShowModal(true, product)}
           >
-            Edit
+             <FaEdit />
           </Button>
           <Button
             variant="danger"
             onClick={() => handleShowDeleteModal(product.id)}
           >
-            Delete
+           <FaTrash /> 
           </Button>
         </td>
       </tr>
     ));
-  }, [products]);
+  }, [currentProducts]);
 
+  
   return (
-    <div className="main-container mt-5">
+    <div className="main-container  mt-5">
       <h1 className="text-center mb-4">Product List</h1>
-      <Button onClick={() => handleShowModal(false)} className="mb-3">
-        Add New Product
-      </Button>
+      
+      {/* Search input field */}
+      <div className="d-flex justify-content-between mb-3">
+        <Form.Group controlId="search" className="flex-grow-1 me-2">
+          <Form.Control 
+            type="text" 
+            placeholder="Search by product name" 
+            value={searchQuery} 
+            onChange={(e) => setSearchQuery(e.target.value)} 
+          />
+        </Form.Group>
+
+        <Button onClick={() => handleShowModal(false)} variant="primary">
+          Add New Product
+        </Button>
+      </div>
+
       {loading ? (
         <p>Loading...</p>
       ) : (
-        <table className="table table-striped table-bordered table-responsive">
-          <thead className="table-dark">
-            <tr>
-              <th>Product Name</th>
-              <th>Price</th>
-              <th>QA</th>
-              <th>Category</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>{renderedProducts}</tbody>
-        </table>
+        <>
+          {renderedProducts.length > 0 ? (
+            <div className="table-responsive">
+              <table className="table table-striped table-bordered table-hover">
+                <thead >
+                  <tr>
+                    <th>Product Name</th>
+                    <th>Price</th>
+                    <th>QA</th>
+                    <th>Category</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>{renderedProducts}</tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="text-center">No products found matching your search.</p> // Message when no products are found
+          )}
+        </>
       )}
+      
+       {/* Pagination */}
+       {renderedProducts.length > 0 && (
+         <Pagination
+           totalItems={products.length}
+           itemsPerPage={itemsPerPage}
+           currentPage={currentPage}
+           onPageChange={handlePageChange}
+         />
+       )}
+
       <ProductModal
         show={showModal}
         isEdit={isEdit}
@@ -169,6 +232,7 @@ const ProductList = () => {
         handleCloseModal={handleCloseDeleteModal}
         handleDelete={handleDelete}
       />
+      
     </div>
   );
 };
