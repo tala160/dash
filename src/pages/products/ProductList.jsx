@@ -1,7 +1,8 @@
 import { useEffect, useState, useMemo } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Button, Form } from "react-bootstrap";
-import { GetAllProducts } from "../../api/products.api";
+import { GetAllProducts, AddNewProduct, UpdateProduct } from "../../api/products.api";
+import { GetAllCategories } from "../../api/Categories.api";
 import ProductModal from "../../components/Modals/ProductModal";
 import DeleteModal from "../../components/Modals/DeleteModal";
 import Pagination from '../../components/Pagination';
@@ -9,11 +10,12 @@ import { FaEdit, FaTrash } from 'react-icons/fa';
 
 const ProductList = () => {
   const [products, setProducts] = useState([]);
-  const [searchQuery, setSearchQuery] = useState(""); // Search state
-  
+  const [categories, setCategories] = useState([]);
+  const [searchQuery, setSearchQuery] = useState(""); 
+
   const itemsPerPage = 5;
   const [currentPage, setCurrentPage] = useState(1);
-  
+
   const [currentProduct, setCurrentProduct] = useState({
     id: null,
     title: "",
@@ -21,7 +23,7 @@ const ProductList = () => {
     qa: "",
     category: "",
   });
-  
+
   const [productToDelete, setProductToDelete] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -39,7 +41,12 @@ const ProductList = () => {
     }
     return true;
   };
-  
+
+  //go to the first page
+   useEffect(() => {
+    setCurrentPage(1); 
+  }, [searchQuery]);
+
   const handleShowModal = (edit, product = null) => {
     setIsEdit(edit);
     setCurrentProduct(
@@ -77,30 +84,51 @@ const ProductList = () => {
     }));
   };
   
-  const handleSaveProduct = (e) => {
+  const handleSaveProduct = async (e) => {
     e.preventDefault();
     if (!validateProduct(currentProduct)) return;
-    
+
     if (isEdit) {
-      setProducts((prev) =>
-        prev.map((p) => (p.id === currentProduct.id ? currentProduct : p))
-      );
+      // Update existing product
+      try {
+        await httpApi.put(`products/${currentProduct.id}`, currentProduct); // Update the product in the API
+        setProducts((prev) =>
+          prev.map((p) => (p.id === currentProduct.id ? currentProduct : p))
+        );
+      } catch (error) {
+        console.error("Error updating product:", error.message);
+      }
+      
     } else {
-      setProducts((prev) => [
-        ...prev,
-        { ...currentProduct, id: Date.now() }, // Use Date.now() for unique ID
-      ]);
+      // Add new product
+      try {
+        const response = await httpApi.post(`products`, currentProduct); // Add the new product to the API
+        setProducts((prev) => [
+          ...prev,
+          { ...response.data }, // Use the response data for the new product
+        ]);
+      } catch (error) {
+        console.error("Error adding product:", error.message);
+      }
     }
     
     handleCloseModal();
-  };
+};
+
+
   
-  const handleDelete = () => {
+const handleDelete = async () => {
+  try {
+    await httpApi.delete(`products/${productToDelete}`); // Delete the product from the API
     setProducts((prev) =>
       prev.filter((product) => product.id !== productToDelete)
     );
     handleCloseDeleteModal();
-  };
+  } catch (error) {
+    console.error("Error deleting product:", error.message);
+  }
+};
+
 
   // Pagination
   const handlePageChange = (pageNumber) => {
@@ -110,6 +138,8 @@ const ProductList = () => {
   // Products for current page
   const currentProducts = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
+
+   
     
     // Filter products based on search query
     const filteredProducts = products.filter(product =>
@@ -133,7 +163,34 @@ const ProductList = () => {
     };
 
     fetchProducts();
+  
+    const fetchnewProduct = async () => {
+      try {
+        const response = await AddNewProduct();
+        fetchProducts();
+      } catch (err) {
+        console.error("Error creating product:", err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchnewProduct();
+
+    //for  fetch Categories
+    const fetchCategories = async () => {
+      try {
+        const response = await GetAllCategories();
+        setCategories(response.data); 
+      } catch (err) {
+        console.error("Error fetching categories:", err.message);
+      }
+    };
+  
+    fetchCategories();
   }, []);
+
+
 
   // Rendered Products
   const renderedProducts = useMemo(() => {
@@ -225,6 +282,8 @@ const ProductList = () => {
         handleChange={handleChange}
         handleCloseModal={handleCloseModal}
         handleSaveProduct={handleSaveProduct}
+        categories={categories}
+        
       />
 
       <DeleteModal

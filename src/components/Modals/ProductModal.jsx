@@ -8,6 +8,7 @@ const ProductModal = ({
   handleChange,
   handleCloseModal,
   handleSaveProduct,
+  categories=[],
 }) => {
   
   ProductModal.propTypes = {
@@ -23,18 +24,10 @@ const ProductModal = ({
     handleChange: PropTypes.func.isRequired,
     handleCloseModal: PropTypes.func.isRequired,
     handleSaveProduct: PropTypes.func.isRequired,
+    categories: PropTypes.array.isRequired,
   };
 
- 
-  const categories = [
-    "Electronics",
-    "Clothing",
-    "Furniture",
-    "Books",
-    "Toys",
-    "Beauty",
-    
-  ];
+
 
   return (
     <>
@@ -84,8 +77,8 @@ const ProductModal = ({
                 required
               >
                 <option value="">Select a category</option> {/* Placeholder option */}
-                {categories.map((category, index) => (
-                  <option key={index} value={category}>
+                {categories.map((category) => (
+                  <option key={category.id} value={category}>
                     {category}
                   </option>
                 ))}
