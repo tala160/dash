@@ -47,7 +47,7 @@
 /* Media Queries */
 @media (max-width: 768px) {
     .addUser {
-        padding: 20px; /* تقليل الحشو في الشاشات الصغيرة */
+        padding: 20px;
     }
 
     .addUser h3 {

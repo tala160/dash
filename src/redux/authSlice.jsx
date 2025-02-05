@@ -14,13 +14,13 @@ const initialState = {
 
 // دالة تسجيل الدخول
 export const loginUser = createAsyncThunk('auth/login', async (credentials) => {
-  const response = await axios.post('https://your-api-url.com/api/login', credentials);
+  const response = await axios.post('https://store-app-production.up.railway.app/api/auth/login', credentials);
   return response.data;
 });
 
 // دالة تسجيل مستخدم جديد
 export const signupUser = createAsyncThunk('auth/signup', async (userData) => {
-  const response = await axios.post('https://your-api-url.com/api/signup', userData);
+  const response = await axios.post('https://store-app-production.up.railway.app/api/auth/register', userData);
   return response.data;
 });
 
@@ -45,8 +45,8 @@ const authSlice = createSlice({
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
-      state.forgetPasswordSuccess = false; // إعادة تعيين حالة نسيان كلمة المرور عند تسجيل الخروج
-      state.resetPasswordSuccess = false; // إعادة تعيين حالة إعادة تعيين كلمة المرور عند تسجيل الخروج
+      state.forgetPasswordSuccess = false; 
+      state.resetPasswordSuccess = false; 
     },
   },
   extraReducers: (builder) => {

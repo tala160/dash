@@ -1,9 +1,6 @@
-import {
-  BsFillArchiveFill,
-  BsFillGrid3X3GapFill,
-  BsPeopleFill,
-  BsFillBellFill,
-} from "react-icons/bs";
+import { FaBoxOpen } from 'react-icons/fa'; 
+import { BiCategory } from 'react-icons/bi'; 
+import { FiShoppingCart , FiClock } from 'react-icons/fi'; 
 import {
   BarChart,
   Bar,
@@ -17,7 +14,17 @@ import {
   Line,
 } from "recharts";
 import "../App.css";
+import { httpApi } from '../api/http.api'; 
+
 function Home() {
+
+  // const [data, setData] = useState([]);
+  // const [productsCount, setProductsCount] = useState(0);
+  // const [categoriesCount, setCategoriesCount] = useState(0);
+  // const [PendingOrdersCount, setPendingOrdersCount] = useState(0);
+  // const [DeliveredOrdersCount, setDeliveredOrdersCount] = useState(0);
+
+
   const data = [
     {
       name: "Page A",
@@ -63,40 +70,66 @@ function Home() {
     },
   ];
 
+
+
+// useEffect(() => {
+//     const fetchData = async () => {
+//       try {
+//         // Fetching the main data for charts
+//         const response = await httpApi.get('/your-endpoint'); 
+//         setData(response.data); // Assuming the data is in response.data
+
+//         // Fetching counts for products, categories, PendingOrders, and Delivered Orders
+//         const countsResponse = await httpApi.get('/counts-endpoint'); 
+//         setProductsCount(countsResponse.data.products); 
+//         setCategoriesCount(countsResponse.data.categories); 
+//         setPendingOrdersCount(countsResponse.data.PendingOrders); 
+//         setDeliveredOrdersCount(countsResponse.data.DeliveredOrders); 
+//       } catch (error) {
+//         console.error("Error fetching data:", error);
+//       }
+//     };
+
+//     fetchData();
+//   }, []);
+
+
   return (
     <main className="main-container">
-      <div className="main-title">
-        <h3>DASHBOARD</h3>
-      </div>
+     
 
       <div className="main-cards">
         <div className="card">
           <div className="card-inner">
-            <h3>PRODUCTS</h3>
-            <BsFillArchiveFill className="card_icon" />
+            <h3>Products</h3>
+            <FaBoxOpen className="card_icon" />
           </div>
           <h1>300</h1>
+          {/* <h1>{productsCount}</h1> //Display dynamic count */}
         </div>
         <div className="card">
           <div className="card-inner">
-            <h3>CATEGORIES</h3>
-            <BsFillGrid3X3GapFill className="card_icon" />
+            <h3>Categories</h3>
+            <BiCategory className="card_icon" />
           </div>
           <h1>12</h1>
+          {/* <h1>{categoriesCount}</h1> //Display dynamic count */}
         </div>
         <div className="card">
           <div className="card-inner">
-            <h3>ORDERS</h3>
-            <BsPeopleFill className="card_icon" />
+            <h3>Pending Orders</h3>
+            <FiClock className="card_icon" />
           </div>
           <h1>33</h1>
+          {/* <h1>{Pending Orders}</h1> //Display dynamic count */}
         </div>
         <div className="card">
           <div className="card-inner">
-            <h3>ALERTS</h3>
-            <BsFillBellFill className="card_icon" />
+            <h3>Delivered Orders</h3>
+            <FiShoppingCart className="card_icon" />
           </div>
           <h1>42</h1>
+          {/* <h1>{DeliveredOrdersCount}</h1> //Display dynamic count */}
         </div>
       </div>
 

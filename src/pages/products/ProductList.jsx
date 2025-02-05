@@ -1,27 +1,29 @@
 import { useEffect, useState, useMemo } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { Button, Form } from "react-bootstrap";
-import { GetAllProducts } from "../../api/products.api";
+import { Button, Form, Row , Col } from "react-bootstrap";
+import { GetAllProducts, AddNewProduct, UpdateProduct } from "../../api/products.api";
+import { GetAllCategories } from "../../api/Categories.api";
 import ProductModal from "../../components/Modals/ProductModal";
 import DeleteModal from "../../components/Modals/DeleteModal";
 import Pagination from '../../components/Pagination';
 import { FaEdit, FaTrash } from 'react-icons/fa'; 
 
 const ProductList = () => {
+
   const [products, setProducts] = useState([]);
-  const [searchQuery, setSearchQuery] = useState(""); // Search state
-  
+  const [categories, setCategories] = useState([]);
+  const [searchQuery, setSearchQuery] = useState(""); 
   const itemsPerPage = 5;
   const [currentPage, setCurrentPage] = useState(1);
-  
   const [currentProduct, setCurrentProduct] = useState({
     id: null,
     title: "",
     price: "",
     qa: "",
     category: "",
+    images: [],
   });
-  
+
   const [productToDelete, setProductToDelete] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -39,7 +41,12 @@ const ProductList = () => {
     }
     return true;
   };
-  
+
+  //go to the first page
+   useEffect(() => {
+    setCurrentPage(1); 
+  }, [searchQuery]);
+
   const handleShowModal = (edit, product = null) => {
     setIsEdit(edit);
     setCurrentProduct(
@@ -77,30 +84,51 @@ const ProductList = () => {
     }));
   };
   
-  const handleSaveProduct = (e) => {
+  const handleSaveProduct = async (e) => {
     e.preventDefault();
     if (!validateProduct(currentProduct)) return;
-    
+
     if (isEdit) {
-      setProducts((prev) =>
-        prev.map((p) => (p.id === currentProduct.id ? currentProduct : p))
-      );
+      // Update existing product
+      try {
+        await httpApi.put(`products/${currentProduct.id}`, currentProduct); // Update the product in the API
+        setProducts((prev) =>
+          prev.map((p) => (p.id === currentProduct.id ? currentProduct : p))
+        );
+      } catch (error) {
+        console.error("Error updating product:", error.message);
+      }
+      
     } else {
-      setProducts((prev) => [
-        ...prev,
-        { ...currentProduct, id: Date.now() }, // Use Date.now() for unique ID
-      ]);
+      // Add new product
+      try {
+        const response = await httpApi.post(`products`, currentProduct); // Add the new product to the API
+        setProducts((prev) => [
+          ...prev,
+          { ...response.data }, // Use the response data for the new product
+        ]);
+      } catch (error) {
+        console.error("Error adding product:", error.message);
+      }
     }
     
     handleCloseModal();
-  };
+};
+
+
   
-  const handleDelete = () => {
+const handleDelete = async () => {
+  try {
+    await httpApi.delete(`products/${productToDelete}`); 
     setProducts((prev) =>
       prev.filter((product) => product.id !== productToDelete)
     );
     handleCloseDeleteModal();
-  };
+  } catch (error) {
+    console.error("Error deleting product:", error.message);
+  }
+};
+
 
   // Pagination
   const handlePageChange = (pageNumber) => {
@@ -110,6 +138,8 @@ const ProductList = () => {
   // Products for current page
   const currentProducts = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
+
+   
     
     // Filter products based on search query
     const filteredProducts = products.filter(product =>
@@ -133,7 +163,34 @@ const ProductList = () => {
     };
 
     fetchProducts();
+  
+    const fetchnewProduct = async () => {
+      try {
+        const response = await AddNewProduct();
+        fetchProducts();
+      } catch (err) {
+        console.error("Error creating product:", err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchnewProduct();
+
+    //for  fetch Categories
+    const fetchCategories = async () => {
+      try {
+        const response = await GetAllCategories();
+        setCategories(response.data); 
+      } catch (err) {
+        console.error("Error fetching categories:", err.message);
+      }
+    };
+  
+    fetchCategories();
   }, []);
+
+
 
   // Rendered Products
   const renderedProducts = useMemo(() => {
@@ -143,6 +200,25 @@ const ProductList = () => {
         <td>{product.price}</td>
         <td>{product.qa}</td>
         <td>{product.category}</td>
+        <td> <div className="d-flex">
+            {product.images && product.images.map((image, index) => (
+              image ? (
+                <img
+                  key={index}
+                  src={image}
+                  alt={`Product Image ${index + 1}`}
+                  style={{
+                    width: '50px',
+                    height: '50px',
+                    objectFit: 'cover',
+                    borderRadius: '5px',
+                    marginRight: '5px'
+                  }}
+                />
+              ) : null
+            ))}
+          </div>
+        </td>
         <td>
           <Button
             variant="warning"
@@ -164,24 +240,29 @@ const ProductList = () => {
 
   
   return (
-    <div className="main-container  mt-5">
-      <h1 className="text-center mb-4">Product List</h1>
+    <div className="my-5 main-container">
+      <Row>
+        <Col md={12}>
+          <h1 className="text-center mb-4">Product List</h1>
       
       {/* Search input field */}
-      <div className="d-flex justify-content-between mb-3">
-        <Form.Group controlId="search" className="flex-grow-1 me-2">
-          <Form.Control 
+      <Row className=" mb-3">
+        <Col md={8}>
+          <Form.Group controlId="search" className="mb-0">
+            <Form.Control 
             type="text" 
             placeholder="Search by product name" 
             value={searchQuery} 
             onChange={(e) => setSearchQuery(e.target.value)} 
           />
-        </Form.Group>
-
-        <Button onClick={() => handleShowModal(false)} variant="primary">
+          </Form.Group>
+        </Col>
+        <Col md={4}>
+        <Button onClick={() => handleShowModal(false)} className="w-100 " style={{backgroundColor: "#a1dee5d1", border: "none"}}>
           Add New Product
         </Button>
-      </div>
+        </Col>
+      </Row>
 
       {loading ? (
         <p>Loading...</p>
@@ -192,18 +273,20 @@ const ProductList = () => {
               <table className="table table-striped table-bordered table-hover">
                 <thead >
                   <tr>
-                    <th>Product Name</th>
+                    <th> Name</th>
                     <th>Price</th>
                     <th>QA</th>
                     <th>Category</th>
+                    <th>Images</th>
                     <th>Actions</th>
+                    
                   </tr>
                 </thead>
                 <tbody>{renderedProducts}</tbody>
               </table>
             </div>
           ) : (
-            <p className="text-center">No products found matching your search.</p> // Message when no products are found
+            <p className="text-center">No products found matching your search.</p> 
           )}
         </>
       )}
@@ -225,6 +308,8 @@ const ProductList = () => {
         handleChange={handleChange}
         handleCloseModal={handleCloseModal}
         handleSaveProduct={handleSaveProduct}
+        categories={categories}
+        
       />
 
       <DeleteModal
@@ -232,8 +317,9 @@ const ProductList = () => {
         handleCloseModal={handleCloseDeleteModal}
         handleDelete={handleDelete}
       />
-      
-    </div>
+    </Col>
+  </Row>
+</div>
   );
 };
 

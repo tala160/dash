@@ -67,13 +67,12 @@ const Login = () => {
           </button>
         </div>
       </form>
-      <label className="mx-auto my-4">
-        <Link
-          to="/forgetPassword"
-          style={{ textDecoration: "none", color: "red" }}
-        >
-          هل نسيت كلمه السر
+      <label className="mx-auto my-4 forgot-password">
+      
+        <Link to="/forgetPassword" style={{ textDecoration: "none", color: "red" }}>
+          Forgot Password?
         </Link>
+      
       </label>
 
       {isPress === true ? (

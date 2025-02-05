@@ -21,7 +21,7 @@ body {
 }
 
 .close_icon {
-  color: red;
+ 
   margin-left: 30px;
   margin-top: 10px;
   cursor: pointer;
@@ -62,6 +62,7 @@ body {
   overflow-y: auto;
   transition: all 0.5s;
   -webkit-transition: all 0.5s;
+
   
 }
 
@@ -79,7 +80,7 @@ body {
 
 .sidebar-brand {
   margin-top: 15px;
-  font-size: 20px;
+  font-size: 25px;
   font-weight: 700;
 }
 
@@ -90,7 +91,7 @@ body {
 
 .sidebar-list-item {
   padding: 20px 20px 20px 20px;
-  font-size: 18px;
+  font-size: 22px;
 }
 
 .sidebar-list-item:hover {
@@ -106,11 +107,6 @@ body {
 .sidebar-responsive {
   display: inline !important;
   position: absolute;
-  /*
-    we want the z-index of the sidebar higher so that
-    the charts are not showing over the sidebar 
-    on small screens
-  */
   z-index: 12 !important;
 }
 
@@ -146,19 +142,19 @@ body {
 }
 
 .card:first-child {
-  background-color: #2962ff;
+  background-color: rgb(136, 132, 216);
 }
 
 .card:nth-child(2) {
-  background-color: #ff6d00;
+  background-color: rgb(130, 202, 157);
 }
 
 .card:nth-child(3) {
-  background-color: #2e7d32;
+  background-color: #a1dee5d1;
 }
 
 .card:nth-child(4) {
-  background-color: #d50000;
+  background-color: #bfb773;
 }
 
 .card-inner {
@@ -227,25 +223,30 @@ body {
   .hedaer-left {
     display: none;
   }
+  #sidebar {
+    display: none;
+    width: 100%;
+    text-align: center;
+  }
 }
 table{
   text-align: center;
 }
-/* Add this to your existing App.css */
+
 
 /* Responsive Table Styles */
 .table-responsive {
-  overflow-x: auto; /* Enables horizontal scrolling on small screens */
+  overflow-x: auto; 
 }
 
 .table {
-  width: 100%; /* Ensures the table takes full width */
-  margin-bottom: 1rem; /* Space below the table */
-  color: #9e9ea4; /* Text color for better visibility */
+  width: 100%; 
+  margin-bottom: 1rem; 
+  color: #9e9ea4;
 }
 
 .table th, .table td {
-  white-space: nowrap; /* Prevents text wrapping */
+  white-space: nowrap; 
 }
 
 @media (max-width: 768px) {
