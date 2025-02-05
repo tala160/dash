@@ -12,38 +12,38 @@ export const httpApi = axios.create({
   baseURL: "http://store-app-production.up.railway.app/api/",
 });
 
-httpApi.interceptors.request.use((config) => {
-  const token = readToken();
+// httpApi.interceptors.request.use((config) => {
+//   const token = readToken();
 
-  if (token) {
-    config.headers = {
-      ...config.headers,
-      Authorization: `Bearer ${token}`,
-    };
-  }
+//   if (token) {
+//     config.headers = {
+//       ...config.headers,
+//       Authorization: `Bearer ${token}`,
+//     };
+//   }
 
-  return config;
-});
+//   return config;
+// });
 
-httpApi.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    // const originalRequest = error.config;
+// httpApi.interceptors.response.use(
+//   (response) => response,
+//   async (error) => {
+//     // const originalRequest = error.config;
 
-    if (error.response?.status === 401) {
-      deleteToken();
-      deleteUser();
+//     if (error.response?.status === 401) {
+//       deleteToken();
+//       deleteUser();
 
-      store.dispatch(logout());
+//       store.dispatch(logout());
 
-      // Navigate to login page on 401 error (unauthorized)
-      window.location.href = "/auth/login"; // Use window.location to redirect
-    }
+//       // Navigate to login page on 401 error (unauthorized)
+//       window.location.href = "/auth/login"; // Use window.location to redirect
+//     }
 
     // Handle other errors
     // throw new ApiError()(
     //   error.response?.data.message || error.message,
     //   error.response?.data
     // );
-  }
-);
+//   }
+// );

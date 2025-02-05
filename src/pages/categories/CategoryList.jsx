@@ -1,30 +1,14 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { Button, Container, Row, Col, Form, Table } from "react-bootstrap";
+import { Button, Row, Col, Form, Table } from "react-bootstrap";
 import { FaEdit, FaTrash } from 'react-icons/fa'; 
 import EditCategory from "../../components/Modals/CategoryModal";
 import Pagination from "../../components/Pagination";
+import { GetAllCategories, AddCategory, UpdateCategory, DeleteCategory } from "../../api/Categories.api";
 
 const CategoryList = () => {
-  const [categories, setCategories] = useState([
-    "Clothes",
-    "Electronics",
-    "Furniture",
-    "Books",
-    "Shoes",
-    "Toys",
-    "Sports",
-    "Beauty",
-    "Home",
-    "Garden",
-    "Automotive",
-    "Jewelry",
-    "Groceries",
-    "Pet Supplies",
-    "Office",
-    "Tools",
-  ]);
   
+  const [categories, setCategories] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [currentCategory, setCurrentCategory] = useState("");
   const [isEdit, setIsEdit] = useState(false);
@@ -33,6 +17,8 @@ const CategoryList = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
   const itemsPerPage = 5;
+
+
 
   const handleClose = () => {
     setShowModal(false);
@@ -51,43 +37,75 @@ const CategoryList = () => {
     setShowModal(true);
   };
 
-  const handleDelete = (categoryToDelete) => {
-    setCategories(categories.filter((category) => category !== categoryToDelete));
-  };
-
-  const handleSaveCategory = (newCategory) => {
-    if (isEdit) {
-      const updatedCategories = [...categories];
-      updatedCategories[editIndex] = newCategory;
-      setCategories(updatedCategories);
-    } else {
-      setCategories([...categories, newCategory]);
+  const handleDelete = async (categoryToDelete) => {
+    try {
+      await DeleteCategory(categoryToDelete.id); // استدعاء API لحذف الفئة
+      setCategories(categories.filter((category) => category.id !== categoryToDelete.id));
+    } catch (err) {
+      console.error("Error deleting category:", err.message);
     }
-    handleClose();
   };
 
-  const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
+  const handleSaveCategory = async (newCategory , newImage) => {
+    try {
+      if (isEdit) {
+        // UpdateCategory
+        await UpdateCategory(currentCategory.id, {category : newCategory , image: newImage}); // استدعاء API لتحديث الفئة
+        const updatedCategories = categories.map((cat) =>
+          cat.id === currentCategory.id ? { ...cat, image: newImage } : cat
+        );
+        setCategories(updatedCategories);
+      } else {
+        // AddCategory
+        const response = await AddCategory({category : newCategory,image: newImage}); // استدعاء API لإضافة فئة جديدة
+        setCategories([...categories, { id: response.data.id, category: newCategory,image: newImage }]); // تحديث الحالة مع الفئة الجديدة
+      }
+      handleClose();
+    } catch (err) {
+      console.error("Error saving category:", err.message);
+    }
   };
 
-  // Filter categories based on search query
-  const filteredCategories = categories.filter(category =>
-    category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+ 
+  useEffect(() => {
+    setCurrentPage(1); 
+  }, [searchQuery]);
 
-  // Current categories for display
+
+ // Filter categories based on search query
+ const filteredCategories = categories.filter(category =>
+  category.toLowerCase().includes(searchQuery.toLowerCase())
+);
+
+
   const currentCategories = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
     return filteredCategories.slice(start, start + itemsPerPage);
   }, [currentPage, filteredCategories]);
 
+
+  
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await GetAllCategories();
+        setCategories(response.data);
+      } catch (err) {
+        console.error("Error fetching categories:", err.message);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  
   return (
     <div className="my-5 main-container">
-      <Row className="">
+      <Row>
         <Col md={12}>
-          <h2 className="text-center mb-4">Category List</h2>
+          <h1 className="text-center mb-4" >Category List</h1>
           
-          {/* Search input field and Add button in one row */}
+        
           <Row className="mb-3">
             <Col md={8}>
               <Form.Group controlId="search" className="mb-0">
@@ -117,8 +135,8 @@ const CategoryList = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {currentCategories.map((category, index) => (
-                    <tr key={index}>
+                  {currentCategories.map((category) => (
+                    <tr key={category.id}>
                       <td>{category}</td>
                       <td>
                         {category.image && (
@@ -130,7 +148,7 @@ const CategoryList = () => {
                           variant="warning"
                           size="sm"
                           className="me-2"
-                          onClick={() => handleEdit(category, index)}
+                          onClick={() => handleEdit(category)}
                         >
                           <FaEdit /> 
                         </Button>
@@ -151,23 +169,24 @@ const CategoryList = () => {
             <p className="text-center">No categories found matching your search.</p> 
           )}
 
-          {/* Pagination */}
+         
           {filteredCategories.length > itemsPerPage && (
             <Pagination
               totalItems={filteredCategories.length}
               itemsPerPage={itemsPerPage}
               currentPage={currentPage}
-              onPageChange={handlePageChange}
+              onPageChange={setCurrentPage}
             />
           )}
 
-          {/* Modal for adding/editing a category */}
+      
           <EditCategory
             show={showModal}
             handleClose={handleClose}
             handleSaveCategory={handleSaveCategory}
             currentCategory={currentCategory}
             isEdit={isEdit}
+            categories={categories}
           />
         </Col>
       </Row>
