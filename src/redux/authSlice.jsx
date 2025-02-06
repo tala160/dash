@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
-
+import { persistUser } from '../services/localStorage.service';
 // إعداد الحالة الأولية
 const initialState = {
   user: null,
@@ -8,33 +8,92 @@ const initialState = {
   isAuthenticated: false,
   loading: false,
   error: null,
-  forgetPasswordSuccess: false, // حالة نجاح نسيان كلمة المرور
-  resetPasswordSuccess: false, // حالة نجاح إعادة تعيين كلمة المرور
+  forgetPasswordSuccess: false, 
+  resetPasswordSuccess: false, 
 };
 
-// دالة تسجيل الدخول
+// loginUser
 export const loginUser = createAsyncThunk('auth/login', async (credentials) => {
-  const response = await axios.post('https://store-app-production.up.railway.app/api/auth/login', credentials);
-  return response.data;
+  try {
+    const response = await axios.post(
+      'https://store-app-production.up.railway.app/api/auth/login',
+      credentials,  // Credentials (email and password) are sent in the body
+      {
+        headers: {
+          'Content-Type': 'application/json',  // Ensure content type is set correctly
+        },
+      }
+    );
+ persistUser(response.data)
+    
+    return  response.data;
+     } catch (error) {
+    // Handle errors more gracefully
+    console.error('Login failed:', error.response ? error.response.data : error.message);
+    throw new Error(error.response ? error.response.data.message || 'Login failed' : 'Network error');
+  }
 });
 
-// دالة تسجيل مستخدم جديد
+// signupUser
 export const signupUser = createAsyncThunk('auth/signup', async (userData) => {
-  const response = await axios.post('https://store-app-production.up.railway.app/api/auth/register', userData);
-  return response.data;
+  try {
+    const response = await axios.post(
+      'https://store-app-production.up.railway.app/api/auth/register',
+      userData,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Signup failed:', error.response ? error.response.data : error.message);
+    throw new Error(error.response ? error.response.data.message || 'Signup failed' : 'Network error');
+  }
 });
 
 // دالة نسيان كلمة المرور
 export const forgetPassword = createAsyncThunk('auth/forgetPassword', async (email) => {
-  const response = await axios.post('https://your-api-url.com/api/forget-password', { email });
-  return response.data; // تأكد من أن الخادم يعيد رسالة نجاح
+  try {
+    const response = await axios.post(
+      'https://store-app-production.up.railway.app/api/auth/forget-password',  // Correct endpoint
+      { email },  // Email is sent in the body
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    return response.data; 
+  } catch (error) {
+    console.error('Forget password failed:', error.response ? error.response.data : error.message);
+    throw new Error(error.response ? error.response.data.message || 'Forget password failed' : 'Network error');
+  }
 });
 
 // دالة إعادة تعيين كلمة المرور
-export const resetPassword = createAsyncThunk('auth/resetPassword', async ({ token, newPassword }) => {
-  const response = await axios.post(`https://your-api-url.com/api/reset-password/${token}`, { newPassword });
-  return response.data; // تأكد من أن الخادم يعيد رسالة نجاح
-});
+export const resetPassword = createAsyncThunk(
+  'auth/resetPassword',
+  async ({ token, newPassword }) => {
+    try {
+      const response = await axios.post(
+        `https://store-app-production.up.railway.app/api/auth/reset-password/${token}`,  // Correct endpoint with token in URL
+        { newPassword },  // New password is sent in the body
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      return response.data; // تأكد من أن الخادم يعيد رسالة نجاح
+    } catch (error) {
+      console.error('Reset password failed:', error.response ? error.response.data : error.message);
+      throw new Error(error.response ? error.response.data.message || 'Reset password failed' : 'Network error');
+    }
+  }
+);
+
 
 // إنشاء slice للمصادقة
 const authSlice = createSlice({
@@ -45,47 +104,76 @@ const authSlice = createSlice({
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
-      state.forgetPasswordSuccess = false; 
-      state.resetPasswordSuccess = false; 
+      state.forgetPasswordSuccess = false;
+      state.resetPasswordSuccess = false;
+      state.error = null; // Clear error on logout
+      state.token = action.payload.token;
     },
   },
   extraReducers: (builder) => {
     builder
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
+        state.error = null; // Clear any previous errors
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
         state.isAuthenticated = true;
         state.user = action.payload.user;
         state.token = action.payload.token; // تخزين التوكن عند تسجيل الدخول الناجح
+        state.error = null;
       })
-      .addCase(loginUser.rejected, (state, action) => {
+      .addCase(loginUser.rejected, (state) => {
         state.loading = false;
-        state.error = action.error.message; // تخزين رسالة الخطأ عند الفشل
+        state.isAuthenticated = false;
+        state.user = null;
+        state.token = null;
+        state.error = 'Invalid credentials'; // Simplified error message
       })
-      .addCase(signupUser.fulfilled, (state, action) => {
-        state.user = action.payload.user; // تخزين معلومات المستخدم عند التسجيل الناجح
+      .addCase(signupUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
       })
-      .addCase(forgetPassword.fulfilled, (state, action) => {
-        state.forgetPasswordSuccess = true; // تعيين حالة النجاح عند إرسال البريد الإلكتروني
-        state.error = null; // إعادة تعيين أي خطأ سابق
+      .addCase(signupUser.fulfilled, (state) => {
+        state.loading = false;
+        state.error = null;
+      })
+      .addCase(signupUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+      .addCase(forgetPassword.pending, (state) => {
+        state.loading = true;
+        state.forgetPasswordSuccess = false;
+        state.error = null;
+      })
+      .addCase(forgetPassword.fulfilled, (state) => {
+        state.loading = false;
+        state.forgetPasswordSuccess = true;
+        state.error = null;
       })
       .addCase(forgetPassword.rejected, (state, action) => {
-        state.forgetPasswordSuccess = false; // إذا فشلت العملية، تعيين الحالة إلى false
-        state.error = action.error.message; // تخزين رسالة الخطأ
+        state.loading = false;
+        state.forgetPasswordSuccess = false;
+        state.error = action.error.message;
       })
-      .addCase(resetPassword.fulfilled, (state, action) => {
-        state.resetPasswordSuccess = true; // تعيين حالة النجاح عند تغيير كلمة المرور
-        state.error = null; // إعادة تعيين أي خطأ سابق
+      .addCase(resetPassword.pending, (state) => {
+        state.loading = true;
+        state.resetPasswordSuccess = false;
+        state.error = null;
+      })
+      .addCase(resetPassword.fulfilled, (state) => {
+        state.loading = false;
+        state.resetPasswordSuccess = true;
+        state.error = null;
       })
       .addCase(resetPassword.rejected, (state, action) => {
-        state.resetPasswordSuccess = false; // إذا فشلت العملية، تعيين الحالة إلى false
-        state.error = action.error.message; // تخزين رسالة الخطأ
+        state.loading = false;
+        state.resetPasswordSuccess = false;
+        state.error = action.error.message;
       });
   },
 });
-
 
 export const { logout } = authSlice.actions;
 

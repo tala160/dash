@@ -1,29 +1,30 @@
 import store from "../redux/store";
 import axios from "axios";
 // import { ApiError } from "@app/api/ApiError";
-import {
-  readToken,
-  deleteToken,
-  deleteUser,
-} from "../services/localStorage.service";
-import { logout } from "../redux/authSlice";
+// import {
+//   readToken,
+//   deleteToken,
+//   deleteUser,
+// } from "../services/localStorage.service";
+// import { logout } from "../redux/authSlice";
 
 export const httpApi = axios.create({
-  baseURL: "http://store-app-production.up.railway.app/api/",
+  baseURL: "https://store-app-production.up.railway.app/api/",
+  
 });
 
-// httpApi.interceptors.request.use((config) => {
-//   const token = readToken();
-
-//   if (token) {
-//     config.headers = {
-//       ...config.headers,
-//       Authorization: `Bearer ${token}`,
-//     };
-//   }
-
-//   return config;
-// });
+httpApi.interceptors.request.use(
+  (config) => {
+      const token = store.getState().auth.token; // Get token from Redux
+      if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+      }
+      return config;
+  },
+  (error) => {
+      return Promise.reject(error);
+  }
+);
 
 // httpApi.interceptors.response.use(
 //   (response) => response,

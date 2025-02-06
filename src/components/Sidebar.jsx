@@ -29,15 +29,17 @@ function Sidebar({ openSidebarToggle, OpenSidebar }) {
           </Link>
         </li>
         <li className='sidebar-list-item'>
-          <Link to="/products">
-            <FaBoxOpen className='icon' /> Products 
-          </Link>
-        </li>
-        <li className='sidebar-list-item'>
           <Link to="/categories">
             <BiCategory className='icon' /> Categories 
           </Link>
         </li>
+        
+        <li className='sidebar-list-item'>
+          <Link to="/products">
+            <FaBoxOpen className='icon' /> Products 
+          </Link>
+        </li>
+
         <li className='sidebar-list-item'>
           <Link to="/orders">
             <FiShoppingCart className='icon' /> Orders 

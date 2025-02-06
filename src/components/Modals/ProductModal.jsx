@@ -12,7 +12,7 @@ const ProductModal = ({
   handleSaveProduct,
   categories = [],
 }) => {
-  const [images, setImages] = useState(product.images || []); // Initialize with existing images or empty
+  const [images, setImages] = useState(product.images || []); 
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
@@ -82,7 +82,7 @@ const ProductModal = ({
               <option value="">Select a category</option>
               {categories.map((category) => (
                 <option key={category.id} value={category}>
-                  {category} {/* Assuming category has a name property */}
+                  {category} 
                 </option>
               ))}
             </Form.Select>
