@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { persistUser } from '../services/localStorage.service';
+
 // إعداد الحالة الأولية
 const initialState = {
   user: null,
@@ -20,12 +20,13 @@ export const loginUser = createAsyncThunk('auth/login', async (credentials) => {
       credentials,  // Credentials (email and password) are sent in the body
       {
         headers: {
-          'Content-Type': 'application/json',  // Ensure content type is set correctly
+          'Content-Type': 'application/json',  
         },
+       
       }
     );
- persistUser(response.data)
     
+
     return  response.data;
      } catch (error) {
     // Handle errors more gracefully
@@ -33,6 +34,7 @@ export const loginUser = createAsyncThunk('auth/login', async (credentials) => {
     throw new Error(error.response ? error.response.data.message || 'Login failed' : 'Network error');
   }
 });
+
 
 // signupUser
 export const signupUser = createAsyncThunk('auth/signup', async (userData) => {

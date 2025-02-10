@@ -7,6 +7,7 @@ import { AiFillHome } from 'react-icons/ai';
 import { FaBoxOpen } from 'react-icons/fa'; 
 import { BiCategory } from 'react-icons/bi'; 
 import { FiShoppingCart } from 'react-icons/fi'; 
+import { FaUser } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import '../App.css';
 
@@ -43,6 +44,12 @@ function Sidebar({ openSidebarToggle, OpenSidebar }) {
         <li className='sidebar-list-item'>
           <Link to="/orders">
             <FiShoppingCart className='icon' /> Orders 
+          </Link>
+        </li>
+
+        <li className='sidebar-list-item'>
+          <Link to="/profile">
+            <FaUser className='icon' /> Profile 
           </Link>
         </li>
       </ul>

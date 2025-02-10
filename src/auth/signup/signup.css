@@ -1,11 +1,13 @@
 .addUser {
-  background-color: white;
-  width: 90%; /* جعل العرض 90% ليتناسب مع الشاشات الصغيرة */
-  max-width: 500px; /* تحديد أقصى عرض للنموذج */
-  margin: 50px auto; /* توازن الهوامش */
+  background-color: #ffffff;
+  width: 90%;
+  max-width: 500px;
+  margin: 50px auto;
   padding: 40px;
   border-radius: 10px;
-  box-shadow: 1px 1px 8px rgba(0, 0, 0, 0.065);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  grid-area: login;
+  transition: all 0.3s ease; 
 }
 
 .addUserForm .inputGroup {
@@ -33,15 +35,16 @@
 }
 
 .login .btn.btn-primary {
-  width: auto; /* تغيير العرض إلى تلقائي */
+  width: auto;
 }
 
 .addUser h3 {
   text-align: center;
   font-weight: bold;
-  color: darkcyan;
+  color: #343a40; 
   text-transform: uppercase;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+  margin-bottom: 20px; 
+  letter-spacing: 1px; 
 }
 
 /* Media Queries */

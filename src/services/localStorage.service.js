@@ -5,7 +5,9 @@ export const persistToken = (token) => {
 
 // Read access token from local storage
 export const readToken = () => {
-  return localStorage.getItem("accessToken");
+   const currentuser =Json.parse(localStorage.getItem("user"));
+  return currentuser.token;
+
 };
 
 // Persist user object into local storage

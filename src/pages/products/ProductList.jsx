@@ -8,10 +8,16 @@ import {
   DeleteProduct,
 } from "../../api/products.api";
 import { GetAllCategories } from "../../api/Categories.api";
-import ProductModal from "../../components/Modals/ProductModal";
+import {  readUser } from '../../services/localStorage.service';
+
+import AddProduct from "../../components/Modals/Product/AddProduct";
+import EditProduct from "../../components/Modals/Product/EditProduct";
 import DeleteModal from "../../components/Modals/DeleteModal";
+
 import Pagination from "../../components/Pagination";
 import { FaEdit, FaTrash } from "react-icons/fa";
+import { showSuccessNotification, showErrorNotification } from '../../services/NotificationService';
+import { Toaster } from 'react-hot-toast';
 
 const ProductList = () => {
   const [products, setProducts] = useState([]);
@@ -19,57 +25,35 @@ const ProductList = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const itemsPerPage = 5;
   const [currentPage, setCurrentPage] = useState(1);
-  const [currentProduct, setCurrentProduct] = useState({
-    id: null,
-    title: "",
-    price: "",
-    qa: "",
-    category: "",
-    images: [],
-  });
+  const [currentProduct, setCurrentProduct] = useState({id: null,title: "",price: "",qa: "",category: "",images: [],});
 
-  const [productToDelete, setProductToDelete] = useState(null);
-  const [showModal, setShowModal] = useState(false);
+  // const [productToDelete, setProductToDelete] = useState(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [isEdit, setIsEdit] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null); // Added error state
+  // const [error, setError] = useState(null); // Added error state
+  const [token, setToken] = useState(null); // Token state
 
-  const validateProduct = (product) => {
-    if (!product.title || !product.price || !product.qa || !product.category) {
-      alert("All fields are required.");
-      return false;
-    }
-    if (isNaN(product.price)) {
-      alert("Price must be a number.");
-      return false;
-    }
-    return true;
-  };
+  // Read token from localStorage
+  useEffect(() => {
+    const storedUser = readUser();
+    setToken(storedUser?.token || null);
+  }, []);
+
 
   //go to the first page
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery]);
 
-  const handleShowModal = (edit, product = null) => {
-    setIsEdit(edit);
-    setCurrentProduct(
-      product || { id: null, title: "", price: "", qa: "", category: "" }
-    );
-    setShowModal(true);
+  //close
+  const handleCloseAddModal = () => {
+    setShowAddModal(false);
   };
 
-  const handleCloseModal = () => {
-    setShowModal(false);
-    setCurrentProduct({
-      id: null,
-      title: "",
-      price: "",
-      qa: "",
-      category: "",
-      images: [],
-    });
+  const handleCloseEditModal = () => {
+    setShowEditModal(false);
   };
 
   const handleCloseDeleteModal = () => {
@@ -77,17 +61,22 @@ const ProductList = () => {
     setProductToDelete(null);
   };
 
-  const handleShowDeleteModal = (id) => {
-    setProductToDelete(id);
-    setShowDeleteModal(true);
+  //show
+  const handleShowAddModal = () => {
+    setShowAddModal(true);
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setCurrentProduct((prevProduct) => ({
-      ...prevProduct,
-      [name]: value,
-    }));
+  const handleShowEditModal = (product , storedToken) => {
+    setCurrentProduct(product);
+    setShowEditModal(true);
+    setToken(storedToken)
+  };
+
+  
+  const handleShowDeleteModal = (id , storedToken) => {
+    setProductToDelete(id);
+    setShowDeleteModal(true);
+    setToken(storedToken)
   };
 
   // Pagination
@@ -111,12 +100,10 @@ const ProductList = () => {
     // Use useCallback to prevent unnecessary re-renders
     try {
       setLoading(true);
-      setError(null); // Clear any previous errors
       const response = await GetAllProducts();
       setProducts(response.data);
     } catch (err) {
-      console.error("Error fetching products:", err.message);
-      setError("Failed to load products."); // Set the error state
+      showErrorNotification("Failed to load products.");
     } finally {
       setLoading(false);
     }
@@ -128,8 +115,8 @@ const ProductList = () => {
       const response = await GetAllCategories();
       setCategories(response.data);
     } catch (err) {
-      console.error("Error fetching categories:", err.message);
-      setError("Failed to load categories."); // Set the error state
+      
+      showErrorNotification("Failed to load categories.");
     }
   }, []);
 
@@ -141,44 +128,59 @@ const ProductList = () => {
   // Function to handle saving/updating a product
   const handleSaveProduct = async (product) => {
     try {
+      if (!token) {
+        showErrorNotification("Authentication token is missing.");
+        return;
+      }
+ 
       if (!validateProduct(product)) {
         return;
       }
-
-      if (isEdit) {
-        await UpdateProduct(product.id, product);
-        // Optimistic update (optional): Update the product in the state immediately
+ 
+      if (product.id) {
+        await UpdateProduct(product.id, product, token); // Pass token here
         setProducts((prevProducts) =>
           prevProducts.map((p) => (p.id === product.id ? product : p))
         );
+        showSuccessNotification("Product updated successfully!");
+        handleCloseEditModal();
       } else {
-        const newProduct = await AddNewProduct(product);
-        // Optimistic update (optional): Add the new product to the state immediately
-        setProducts((prevProducts) => [...prevProducts, newProduct]); // Use the returned newProduct
+        const response = await AddNewProduct(product, token); // Pass token here
+        if (response.status === 201 || response.status === 200) {
+          setProducts((prevProducts) => [...prevProducts, response.data]); // Use response.data
+          showSuccessNotification("Product added successfully!");
+          handleCloseAddModal();
+        } else {
+          throw new Error("Failed to add product");
+        }
       }
-
-      handleCloseModal();
-      fetchProducts(); // Refresh product list after successful save (remove if using optimistic updates)
-    } catch (error) {
-      console.error("Error saving product:", error);
-      setError("Failed to save product."); // Set the error state
+    } catch (err) {
+      
+      showErrorNotification("Failed to save product.");
     }
   };
+ 
 
   // Function to handle deleting a product
   const handleDelete = async () => {
     try {
-      await DeleteProduct(productToDelete);
+      if (!token) {
+        showErrorNotification("Authentication token is missing.");
+        return;
+      }
+  
+      await DeleteProduct(productToDelete, token);
       setProducts((prevProducts) =>
         prevProducts.filter((product) => product.id !== productToDelete)
       ); // Optimistic update
       handleCloseDeleteModal();
-      fetchProducts(); // Refresh product list after successful delete (remove if using optimistic updates)
-    } catch (error) {
-      console.error("Error deleting product:", error);
-      setError("Failed to delete product."); // Set the error state
+      showSuccessNotification("Product deleted successfully!");
+    } catch (err) {
+      
+      showErrorNotification("Failed to delete product.");
     }
   };
+  
 
   // Rendered Products
   const renderedProducts = useMemo(() => {
@@ -213,7 +215,7 @@ const ProductList = () => {
           <Button
             variant="warning"
             className="me-2"
-            onClick={() => handleShowModal(true, product)}
+            onClick={() => handleShowEditModal(product)}
           >
             <FaEdit />
           </Button>
@@ -228,12 +230,13 @@ const ProductList = () => {
     ));
   }, [
     currentProducts,
-    handleShowModal,
+    handleShowEditModal,
     handleShowDeleteModal,
   ]); // Include all dependencies
 
   return (
     <div className="my-5 main-container">
+      <Toaster position="top-right" reverseOrder={false} />
       <Row>
         <Col md={12}>
           <h1 className="text-center mb-4">Product List</h1>
@@ -252,7 +255,7 @@ const ProductList = () => {
             </Col>
             <Col md={4}>
               <Button
-                onClick={() => handleShowModal(false)}
+                onClick={handleShowAddModal}
                 className="w-100 "
                 style={{ backgroundColor: "#a1dee5d1", border: "none" }}
               >
@@ -261,9 +264,7 @@ const ProductList = () => {
             </Col>
           </Row>
 
-          {/* Error Handling */}
-          {error && <p className="text-danger">{error}</p>}
-
+       
           {loading ? (
             <p>Loading...</p>
           ) : (
@@ -291,7 +292,6 @@ const ProductList = () => {
               )}
             </>
           )}
-
           {/* Pagination */}
           {products.length > 0 && (
             <Pagination
@@ -302,21 +302,31 @@ const ProductList = () => {
             />
           )}
 
-          <ProductModal
-            show={showModal}
-            isEdit={isEdit}
-            product={currentProduct}
-            handleChange={handleChange}
-            handleCloseModal={handleCloseModal}
+          <AddProduct
+            show={showAddModal}
+            handleCloseModal={handleCloseAddModal}
             handleSaveProduct={handleSaveProduct}
             categories={categories}
+            token={token}
+          />
+
+          <EditProduct
+            show={showEditModal}
+            handleCloseModal={handleCloseEditModal}
+            handleSaveProduct={handleSaveProduct}
+            categories={categories}
+            product={currentProduct}
+            token={token}
           />
 
           <DeleteModal
             show={showDeleteModal}
-            handleCloseModal={handleCloseDeleteModal}
+            handleCloseModal={handleCloseDeleteModal} // Pass handleCloseModal
             handleDelete={handleDelete}
+            itemName="product"
+            token={token}
           />
+
         </Col>
       </Row>
     </div>

@@ -1,8 +1,9 @@
 body {
   margin: 0;
   padding: 0;
-  background-color: #1d2634 !important;
-  color: #9e9ea4 !important;
+  background-color: #f8f9fa !important;
+  /* color: #9e9ea4 !important; */
+  color: #1d2634 ;
   font-family: 'Montserrat', sans-serif;
 }
 
@@ -70,7 +71,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 30px 0px 30px;
+  padding: 28px 30px 14px 30px;
   margin-bottom: 30px;
 }
 
@@ -118,7 +119,10 @@ body {
   grid-area: main;
   overflow-y: auto;
   padding: 20px 20px;
-  color: rgba(255, 255, 255, 0.95);
+  background-color: '#ffffff';
+  border-radius: '10px'; 
+  box-shadow: '0 4px 8px rgba(0, 0, 0, 0.1)' ;
+ 
 }
 
 .main-title {
@@ -139,6 +143,7 @@ body {
   justify-content: space-around;
   padding: 8px 15px;
   border-radius: 5px;
+  box-shadow: 1px 11px 5px 7px rgba(0, 0, 0, 0.15);
 }
 
 .card:first-child {
@@ -173,6 +178,7 @@ body {
   gap: 20px;
   margin-top: 60px;
   height: 300px;
+  /* box-shadow: 1px 11px 5px 7px rgba(0, 0, 0, 0.15); */
 }
 
 /* End Main  */

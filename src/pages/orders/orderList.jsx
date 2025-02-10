@@ -15,12 +15,12 @@ const OrderList = () => {
 
   const itemsPerPage = 5;
 
-  // جلب الطلبات عند تحميل المكون
+  
   useEffect(() => {
     const fetchOrders = async () => {
       try {
         const response = await GetAllorders();
-        setOrders(response.data); // تخزين الطلبات في الحالة
+        setOrders(response.data); 
       } catch (err) {
         console.error("Error fetching orders:", err.message);
       }
@@ -79,7 +79,7 @@ const OrderList = () => {
         <Col md={12}>
           <h1 className="text-center mb-4">Order List</h1>
 
-          {/* حقل البحث */}
+         
           <Form.Group controlId="search" className="mb-3">
             <Form.Control 
               type="text" 
@@ -89,7 +89,7 @@ const OrderList = () => {
             />
           </Form.Group>
 
-          <div className="table-responsive"> {/* إضافة div مع فئة table-responsive */}
+          <div className="table-responsive"> 
             <Table striped bordered hover responsive>
               <thead>
                 <tr>

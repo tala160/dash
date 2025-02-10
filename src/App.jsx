@@ -16,6 +16,7 @@ import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
 import Home from "./pages/Home";
 import OrderList from "./pages/orders/orderList";
+import Profile from './pages/Profile';
 
 function App() {
   const [openSidebarToggle, setOpenSidebarToggle] = useState(false);
@@ -28,7 +29,7 @@ function App() {
     <Router>
       <div className="App">
         <div className="grid-container">
-          {/* استخدام مكون فرعي لتحديد ما إذا كان يجب عرض Header و Sidebar */}
+          
           <Content
             OpenSidebar={OpenSidebar}
             openSidebarToggle={openSidebarToggle}
@@ -39,11 +40,11 @@ function App() {
   );
 }
 
-// مكون فرعي لتحديد ما إذا كان يجب عرض Header و Sidebar
+
 const Content = ({ OpenSidebar, openSidebarToggle }) => {
   const location = useLocation();
 
-  // تحديد الصفحات التي لا يظهر فيها الشريط الجانبي والرأس
+
   const noHeaderAndSidebarRoutes = [
     "/login",
     "/",
@@ -68,6 +69,7 @@ const Content = ({ OpenSidebar, openSidebarToggle }) => {
         <Route path="/forgetPassword" element={<ForgetPassword />} />
         <Route path="/resetPassword" element={<ResetPassword />} />
         <Route path="/home" element={<Home />} />
+        <Route path='/profile' element={<Profile/>}/>
         <Route path="/products" element={<ProductList />} />
         <Route path="/categories" element={<Category />} />
         <Route path="/orders" element={<OrderList />} />
