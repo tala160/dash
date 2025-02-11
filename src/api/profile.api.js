@@ -1,11 +1,7 @@
-
 import { httpApi } from "./http.api";
 
-
-const Updateprofile = async (id, userData, token) => {
-  return await httpApi.put(`users/${id}`, userData, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+const Updateprofile = async (id, userData) => {
+  return await httpApi.put(`users/${id}`, userData);
 };
 
-export {Updateprofile}  ;
+export { Updateprofile };

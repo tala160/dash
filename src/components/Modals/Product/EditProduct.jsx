@@ -1,5 +1,5 @@
 // EditProductModal.js
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 import PropTypes from "prop-types";
 import { FaTrashAlt, FaUpload } from "react-icons/fa";
@@ -10,7 +10,6 @@ const EditProductModal = ({
   handleSaveProduct,
   categories = [],
   product: initialProduct,
-  token,
 }) => {
   const [product, setProduct] = useState({
     id: null,
@@ -58,7 +57,7 @@ const EditProductModal = ({
     if (!validateProduct(product)) {
       return;
     }
-    handleSaveProduct({ ...product, images, token }); // Pass token here
+    handleSaveProduct({ ...product, images });
   };
 
   return (
@@ -167,7 +166,6 @@ EditProductModal.propTypes = {
     category: PropTypes.string.isRequired,
     images: PropTypes.arrayOf(PropTypes.string),
   }).isRequired,
-  token: PropTypes.string,
 };
 
 export default EditProductModal;
