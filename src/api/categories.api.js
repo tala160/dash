@@ -6,27 +6,18 @@ const GetAllCategories = async () => {
 };
 
 // AddCategory
-const AddCategory = async (name,token ) => {
-  return await httpApi.post(`categories`,name , 
-  { headers: {
-    'Authorization': `Bearer ${token}`}
-}
-  );
+const AddCategory = async (name) => {
+  return await httpApi.post(`categories`, name);
 };
 
 // UpdateCategory
-const UpdateCategory = async (id,name, token) => {
-  return await httpApi.put(`categories/${id}`, name , 
-  { headers: { Authorization: `Bearer ${token}`}}
-  );
+const UpdateCategory = async (id, name) => {
+  return await httpApi.put(`categories/${id}`, name);
 };
 
 // DeleteCategory
 const DeleteCategory = async (id) => {
-  return await httpApi.delete(`categories/${id}`, 
-  { headers: { Authorization: `Bearer ${token}`}}
-  );
+  return await httpApi.delete(`categories/${id}`);
 };
-  
 
 export { GetAllCategories, AddCategory, UpdateCategory, DeleteCategory };

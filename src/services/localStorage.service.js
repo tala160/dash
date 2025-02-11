@@ -1,21 +1,17 @@
-// Persist access token
-export const persistToken = (token) => {
-  localStorage.setItem("accessToken", token);
-};
-
-// Read access token from local storage
-export const readToken = () => {
-   const currentuser =Json.parse(localStorage.getItem("user"));
-  return currentuser.token;
-
-};
-
-// Persist user object into local storage
 export const persistUser = (user) => {
   localStorage.setItem("user", JSON.stringify(user));
 };
 
-// Read user from local storage
+export const persistToken = (token) => {
+  localStorage.setItem("accessToken", token);
+};
+
+export const readToken = () => {
+  const currentaccessToken = localStorage.getItem("accessToken");
+
+  return currentaccessToken;
+};
+
 export const readUser = () => {
   const userStr = localStorage.getItem("user");
 
@@ -23,9 +19,8 @@ export const readUser = () => {
     try {
       const parsedUser = JSON.parse(userStr);
       return parsedUser;
-      // eslint-disable-next-line no-unused-vars
     } catch (error) {
-      localStorage.removeItem("user"); // Clear corrupted data
+      localStorage.removeItem("user", error); // Clear corrupted data
       return null;
     }
   }
@@ -33,7 +28,6 @@ export const readUser = () => {
   return null; // Return null if no user is stored
 };
 
-// Delete access token from local storage
 export const deleteToken = () => localStorage.removeItem("accessToken");
 
 // Delete user data from local storage

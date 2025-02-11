@@ -1,5 +1,6 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { httpApi } from "../api/http.api";
+import { persistToken, persistUser } from "../services/localStorage.service";
 
 // إعداد الحالة الأولية
 const initialState = {
@@ -8,101 +9,128 @@ const initialState = {
   isAuthenticated: false,
   loading: false,
   error: null,
-  forgetPasswordSuccess: false, 
-  resetPasswordSuccess: false, 
+  forgetPasswordSuccess: false,
+  resetPasswordSuccess: false,
 };
 
 // loginUser
-export const loginUser = createAsyncThunk('auth/login', async (credentials) => {
+export const loginUser = createAsyncThunk("auth/login", async (credentials) => {
   try {
-    const response = await axios.post(
-      'https://store-app-production.up.railway.app/api/auth/login',
-      credentials,  // Credentials (email and password) are sent in the body
+    const response = await httpApi.post(
+      "auth/login",
+      credentials, // Credentials (email and password) are sent in the body
       {
         headers: {
-          'Content-Type': 'application/json',  
+          "Content-Type": "application/json",
         },
-       
       }
     );
-    
+    persistUser(response.data.user);
+    persistToken(response.data.token);
 
-    return  response.data;
-     } catch (error) {
+    return response.data;
+  } catch (error) {
     // Handle errors more gracefully
-    console.error('Login failed:', error.response ? error.response.data : error.message);
-    throw new Error(error.response ? error.response.data.message || 'Login failed' : 'Network error');
+    console.error(
+      "Login failed:",
+      error.response ? error.response.data : error.message
+    );
+    throw new Error(
+      error.response
+        ? error.response.data.message || "Login failed"
+        : "Network error"
+    );
   }
 });
 
-
 // signupUser
-export const signupUser = createAsyncThunk('auth/signup', async (userData) => {
+export const signupUser = createAsyncThunk("auth/signup", async (userData) => {
   try {
-    const response = await axios.post(
-      'https://store-app-production.up.railway.app/api/auth/register',
-      userData,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    const response = await httpApi.post("auth/register", userData, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
     return response.data;
   } catch (error) {
-    console.error('Signup failed:', error.response ? error.response.data : error.message);
-    throw new Error(error.response ? error.response.data.message || 'Signup failed' : 'Network error');
+    console.error(
+      "Signup failed:",
+      error.response ? error.response.data : error.message
+    );
+    throw new Error(
+      error.response
+        ? error.response.data.message || "Signup failed"
+        : "Network error"
+    );
   }
 });
 
 // دالة نسيان كلمة المرور
-export const forgetPassword = createAsyncThunk('auth/forgetPassword', async (email) => {
-  try {
-    const response = await axios.post(
-      'https://store-app-production.up.railway.app/api/auth/forget-password',  // Correct endpoint
-      { email },  // Email is sent in the body
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-    return response.data; 
-  } catch (error) {
-    console.error('Forget password failed:', error.response ? error.response.data : error.message);
-    throw new Error(error.response ? error.response.data.message || 'Forget password failed' : 'Network error');
-  }
-});
-
-// دالة إعادة تعيين كلمة المرور
-export const resetPassword = createAsyncThunk(
-  'auth/resetPassword',
-  async ({ token, newPassword }) => {
+export const forgetPassword = createAsyncThunk(
+  "auth/forgetPassword",
+  async (email) => {
     try {
-      const response = await axios.post(
-        `https://store-app-production.up.railway.app/api/auth/reset-password/${token}`,  // Correct endpoint with token in URL
-        { newPassword },  // New password is sent in the body
+      const response = await httpApi.post(
+        "auth/forget-password",
+        { email }, // Email is sent in the body
         {
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         }
       );
-      return response.data; // تأكد من أن الخادم يعيد رسالة نجاح
+      return response.data;
     } catch (error) {
-      console.error('Reset password failed:', error.response ? error.response.data : error.message);
-      throw new Error(error.response ? error.response.data.message || 'Reset password failed' : 'Network error');
+      console.error(
+        "Forget password failed:",
+        error.response ? error.response.data : error.message
+      );
+      throw new Error(
+        error.response
+          ? error.response.data.message || "Forget password failed"
+          : "Network error"
+      );
     }
   }
 );
 
+// دالة إعادة تعيين كلمة المرور
+export const resetPassword = createAsyncThunk(
+  "auth/resetPassword",
+  async ({ token, newPassword }) => {
+    try {
+      const response = await httpApi.post(
+        `auth/reset-password/${token}`,
+        { newPassword }, // New password is sent in the body
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      return response.data; // تأكد من أن الخادم يعيد رسالة نجاح
+    } catch (error) {
+      console.error(
+        "Reset password failed:",
+        error.response ? error.response.data : error.message
+      );
+      throw new Error(
+        error.response
+          ? error.response.data.message || "Reset password failed"
+          : "Network error"
+      );
+    }
+  }
+);
 
 // إنشاء slice للمصادقة
 const authSlice = createSlice({
-  name: 'auth',
+  name: "auth",
   initialState,
   reducers: {
-    logout(state) {
+    logout(state, action) {
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
@@ -130,7 +158,7 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         state.user = null;
         state.token = null;
-        state.error = 'Invalid credentials'; // Simplified error message
+        state.error = "Invalid credentials"; // Simplified error message
       })
       .addCase(signupUser.pending, (state) => {
         state.loading = true;

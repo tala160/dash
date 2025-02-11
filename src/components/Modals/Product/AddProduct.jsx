@@ -1,6 +1,6 @@
 // AddProductModal.js
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 import PropTypes from "prop-types";
 import { FaUpload } from "react-icons/fa";
@@ -11,7 +11,6 @@ const AddProductModal = ({
   handleCloseModal,
   handleSaveProduct,
   categories = [],
-  token,
 }) => {
   const [product, setProduct] = useState({
     title: "",
@@ -46,7 +45,7 @@ const AddProductModal = ({
     if (!validateProduct(product)) {
       return;
     }
-    handleSaveProduct({ ...product, images, token }); // Pass token here
+    handleSaveProduct({ ...product, images }); // Pass token here
   };
 
   return (
