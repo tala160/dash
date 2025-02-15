@@ -6,8 +6,11 @@ const GetAllProducts = async () => {
 };
 
 // AddNewProduct
-const AddNewProduct = async (newProduct) => {
-  return await httpApi.post(`products`, newProduct);
+const AddNewProduct = async (formData) => {
+  return await httpApi.post(`products`, formData , 
+  //  headers= { 'Content-Type': 'multipart/form-data' }
+  
+  );
 };
 
 // UpdateProduct

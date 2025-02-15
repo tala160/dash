@@ -30,7 +30,7 @@ body {
 
 .grid-container {
   display: grid;
-   grid-template-columns: 260px auto; 
+   grid-template-columns: 300px auto; 
   grid-template-rows: 0.2fr 3fr;
   grid-template-areas:
     'sidebar header header header'
@@ -59,10 +59,11 @@ body {
 #sidebar {
   grid-area: sidebar;
   height: 100%;
-  background-color: #263043;
+  background-color: black;
   overflow-y: auto;
   transition: all 0.5s;
   -webkit-transition: all 0.5s;
+  text-align: center;
 
   
 }
@@ -93,18 +94,30 @@ body {
 .sidebar-list-item {
   padding: 20px 20px 20px 20px;
   font-size: 22px;
+  transition: background-color 0.3s, transform 0.2s;
 }
 
 .sidebar-list-item:hover {
   background-color: rgba(255, 255, 255, 0.2);
   cursor: pointer;
+  transform: scale(1.05);
 }
 
 .sidebar-list-item > a {
   text-decoration: none;
   color: #9e9ea4;
+  
+}
+.sidebar-list-item > a:hover {
+  color: #ffffff; 
+}
+.icon.close_icon {
+  transition: color 0.3s ease-in-out;
 }
 
+.icon.close_icon:hover {
+  color: #ffffff; 
+}
 .sidebar-responsive {
   display: inline !important;
   position: absolute;
@@ -147,20 +160,25 @@ body {
 }
 
 .card:first-child {
-  background-color: rgb(136, 132, 216);
+  background-color: #e0c24b52;
+   
 }
 
 .card:nth-child(2) {
-  background-color: rgb(130, 202, 157);
+  background-color: rgb(136 132 216 / 54%);
+   
 }
 
 .card:nth-child(3) {
-  background-color: #a1dee5d1;
+  background-color: rgb(130 202 157 / 70%);
+  
 }
 
 .card:nth-child(4) {
-  background-color: #bfb773;
+  background-color: #f0dfa8; 
+  
 }
+
 
 .card-inner {
   display: flex;
@@ -169,7 +187,7 @@ body {
 }
 
 .card-inner > .card_icon {
-  font-size: 25px;
+  font-size: 35px;
 }
 
 .charts {
@@ -233,6 +251,13 @@ body {
     display: none;
     width: 100%;
     text-align: center;
+  }
+  .sidebar-list-item > a {
+
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    width: 100%;
   }
 }
 table{

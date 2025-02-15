@@ -1,40 +1,53 @@
-// EditProductModal.js
 import { useState, useEffect } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 import PropTypes from "prop-types";
 import { FaTrashAlt, FaUpload } from "react-icons/fa";
 import { validateProduct } from "./validation";
+
 const EditProductModal = ({
   show,
-  handleCloseModal,
+  handleClose,
   handleSaveProduct,
   categories = [],
   product: initialProduct,
 }) => {
   const [product, setProduct] = useState({
     id: null,
-    title: "",
-    price: "",
-    qa: "",
-    category: "",
+    name: "",
+    price: 0,
+    categoryId: null,
+    categoryName: "",
     images: [],
   });
-  const [images, setImages] = useState([]);
-
+  const [error, setError] = useState(null);
+  const [images, setImages] = useState(null);
+  
+  // to update product
   useEffect(() => {
     if (initialProduct) {
-      setProduct(initialProduct);
-      setImages(initialProduct.images || []);
+      setProduct({
+        ...initialProduct,
+        price: parseFloat(initialProduct.price),
+        categoryId: parseInt(initialProduct.categoryId, 10),
+        categoryName:
+          categories.find((cat) => cat.id === parseInt(initialProduct.categoryId, 10))?.name || "",
+      });
     }
-  }, [initialProduct]);
+  }, [initialProduct, categories]);
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setProduct((prevProduct) => ({
-      ...prevProduct,
-      [name]: value,
+    setProduct((prev) => ({
+      ...prev,
+      [name]: name === "price" ? parseFloat(value) || 0 : value,
+      ...(name === "categoryId" && {
+        categoryId: parseInt(value, 10),
+        categoryName: categories.find((cat) => cat.id === parseInt(value, 10))?.name || "",
+      }),
     }));
   };
+
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
@@ -42,26 +55,41 @@ const EditProductModal = ({
       alert("You can only upload up to 4 images.");
       return;
     }
-    const newImages = files.map((file) => file.name); // Store the file names
-    setImages(newImages);
+    setProduct((prev) => ({
+      ...prev,
+      images: [...prev.images, ...files],
+    }));
   };
 
+
   const handleRemoveImage = (index) => {
-    const newImages = images.filter((_, i) => i !== index); // Remove the selected image
-    setImages(newImages);
+    setProduct((prev) => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index),
+    }));
   };
+
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Validate the product before saving
-    if (!validateProduct(product)) {
+
+
+    const productToSend = {
+      name: product.name,
+      price: product.price,
+      categoryId: product.categoryId,
+      images: product.images,
+    };
+
+    if (!validateProduct(productToSend)) {
       return;
     }
-    handleSaveProduct({ ...product, images });
+
+    handleSaveProduct(productToSend);
   };
 
   return (
-    <Modal show={show} onHide={handleCloseModal}>
+    <Modal show={show} onHide={handleClose}>
       <Modal.Header closeButton>
         <Modal.Title>Edit Product</Modal.Title>
       </Modal.Header>
@@ -71,8 +99,8 @@ const EditProductModal = ({
             <Form.Label>Product Name</Form.Label>
             <Form.Control
               type="text"
-              name="title"
-              value={product.title}
+              name="name"
+              value={product.name}
               onChange={handleChange}
               required
             />
@@ -80,19 +108,9 @@ const EditProductModal = ({
           <Form.Group className="mb-3" controlId="formProductPrice">
             <Form.Label>Price</Form.Label>
             <Form.Control
-              type="text"
+              type="number"
               name="price"
               value={product.price}
-              onChange={handleChange}
-              required
-            />
-          </Form.Group>
-          <Form.Group className="mb-3" controlId="formProductQA">
-            <Form.Label>QA</Form.Label>
-            <Form.Control
-              type="text"
-              name="qa"
-              value={product.qa}
               onChange={handleChange}
               required
             />
@@ -100,15 +118,15 @@ const EditProductModal = ({
           <Form.Group className="mb-3" controlId="formProductCategory">
             <Form.Label>Category</Form.Label>
             <Form.Select
-              name="category"
-              value={product.category}
+              name="categoryId"
+              value={product.categoryId || ""}
               onChange={handleChange}
               required
             >
               <option value="">Select a category</option>
               {categories.map((category) => (
-                <option key={category.id} value={category}>
-                  {category}
+                <option key={category.id} value={category.id}>
+                  {category.name}
                 </option>
               ))}
             </Form.Select>
@@ -129,14 +147,10 @@ const EditProductModal = ({
               <FaUpload /> Upload Images
             </label>
 
-            {images.map((image, index) => (
+            {product.images.map((image, index) => (
               <div key={index} className="d-flex align-items-center mb-2">
-                <span className="me-2">{image}</span>
-                <Button
-                  variant="danger"
-                  size="sm"
-                  onClick={() => handleRemoveImage(index)}
-                >
+                <span className="me-2">{image instanceof File ? image.name : image}</span>
+                <Button variant="danger" size="sm" onClick={() => handleRemoveImage(index)}>
                   <FaTrashAlt />
                 </Button>
               </div>
@@ -144,7 +158,7 @@ const EditProductModal = ({
           </div>
 
           {/* Save Button */}
-          <Button variant="primary" type="submit" className="w-100">
+          <Button variant="primary" type="submit" className="w-100" style={{ backgroundColor: "black", border: "none" }}>
             Save Changes
           </Button>
         </Form>
@@ -155,16 +169,19 @@ const EditProductModal = ({
 
 EditProductModal.propTypes = {
   show: PropTypes.bool.isRequired,
-  handleCloseModal: PropTypes.func.isRequired,
+  handleClose: PropTypes.func.isRequired,
   handleSaveProduct: PropTypes.func.isRequired,
   categories: PropTypes.array.isRequired,
   product: PropTypes.shape({
     id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-    title: PropTypes.string.isRequired,
-    price: PropTypes.string.isRequired,
-    qa: PropTypes.string.isRequired,
-    category: PropTypes.string.isRequired,
-    images: PropTypes.arrayOf(PropTypes.string),
+    name: PropTypes.string.isRequired,
+    price: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
+    categoryId: PropTypes.oneOfType([
+      PropTypes.number,
+      PropTypes.string,
+      PropTypes.oneOf([null]) 
+    ]).isRequired,
+    images: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(File)])),
   }).isRequired,
 };
 

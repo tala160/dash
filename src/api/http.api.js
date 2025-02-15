@@ -5,6 +5,9 @@ import { readToken } from "../services/localStorage.service";
 export const httpApi = axios.create({
   baseURL: "https://store-app-production.up.railway.app/api/",
 });
+
+
+
 httpApi.interceptors.request.use(
   (config) => {
     const token = readToken();
@@ -16,7 +19,7 @@ httpApi.interceptors.request.use(
   },
   (error) => Promise.reject(error)
 );
-
+//interceptors for send token with every req
 httpApi.interceptors.response.use(
   (response) => {
     console.log("استجابة ناجحة:", response.status);

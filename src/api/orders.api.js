@@ -4,8 +4,15 @@ import { httpApi } from "./http.api";
 const GetAllorders = async () => {
   return await httpApi.get(`orders`);
 };
-// Updateorder
-const Updateorder = async (id, Updateorder) => {
-    return await httpApi.put(`orders/${id}`, updateorder);
-  };
-export { GetAllorders , Updateorder };
+
+// UpdateOrderPrice
+const UpdateOrderPrice = async (id, newPrice) => {
+  return await httpApi.put(`orders/${id}/approve`, newPrice );
+};
+
+// UpdateOrderStatus
+const UpdateOrderStatus = async (id, newStatus) => {
+  return await httpApi.put(`orders/${id}`, newStatus );
+};
+
+export { GetAllorders, UpdateOrderPrice, UpdateOrderStatus };

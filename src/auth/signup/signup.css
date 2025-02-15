@@ -54,14 +54,14 @@
     }
 
     .addUser h3 {
-        font-size: 1.5em; /* تغيير حجم الخط في الشاشات الصغيرة */
+        font-size: 1.5em;
     }
     
     .addUserForm .inputGroup input {
-        padding: 8px; /* تقليل الحشو في الحقول */
+        padding: 8px; 
     }
     
     .inputGroup button {
-        padding: 10px; /* زيادة حجم الزر لسهولة الاستخدام */
+        padding: 10px; 
     }
 }

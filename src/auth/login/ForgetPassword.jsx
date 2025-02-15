@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { forgetPassword } from '../../redux/authSlice';
 import { Spinner } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom'; 
 import './login.css';
 
 const ForgetPassword = () => {
@@ -10,6 +10,8 @@ const ForgetPassword = () => {
     const dispatch = useDispatch();
     const [loading, setLoading] = useState(false);
     const [isPress, setIsPress] = useState(false);
+    const [emailError, setEmailError] = useState('');
+    const navigate = useNavigate(); 
 
     const forgetPasswordSuccess = useSelector((state) => state.auth.forgetPasswordSuccess);
     const errorMessage = useSelector((state) => state.auth.error);
@@ -18,10 +20,32 @@ const ForgetPassword = () => {
         e.preventDefault();
         setIsPress(true);
         setLoading(true);
-        await dispatch(forgetPassword(email));
-        setLoading(false);
-        setIsPress(false);
-        setEmail('');
+
+        if (!email) {
+            setEmailError('Email is required');
+            setLoading(false);
+            setIsPress(false);
+            return;
+        }
+
+        setEmailError('');
+        
+        try {
+            const resultAction = dispatch(forgetPassword(email));
+
+            // بعد نجاح العملية، قم بإعادة التوجيه إلى صفحة إعادة تعيين كلمة المرور
+            if (forgetPassword.fulfilled.match(resultAction)) {
+              // افتراض أن ال backend يرجع التوكن مع الرد
+              const token = resultAction.payload.token; 
+              navigate(`/reset-password/${token}`);
+            }
+            setEmail('');
+        } catch (error) {
+            console.error("Error:", error);
+        } finally {
+            setLoading(false);
+            setIsPress(false);
+        }
     };
 
     return (
@@ -39,6 +63,9 @@ const ForgetPassword = () => {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                     />
+                    {emailError && (
+                        <p style={{ color: 'red' }}>{emailError}</p>
+                    )}
                     <button type="submit" className="btn btn-primary" disabled={loading}>
                         {loading ? (
                             'Sending...'

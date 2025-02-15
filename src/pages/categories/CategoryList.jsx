@@ -1,44 +1,28 @@
 import { useState, useMemo, useEffect } from "react";
-// import "bootstrap/dist/css/bootstrap.min.css";
 import { Button, Row, Col, Form, Table } from "react-bootstrap";
 import { FaEdit, FaTrash } from "react-icons/fa";
-// import EditCategory from "../../components/Modals/CategoryModal";
+
 import EditCategory from "../../components/Modals/Category/EditCategory";
 import AddNEWCategory from "../../components/Modals/Category/AddCategory";
 import DeleteModal from "../../components/Modals/DeleteModal";
-import Pagination from "../../components/Pagination";
-import {
-  GetAllCategories,
-  AddCategory,
-  DeleteCategory,
-  UpdateCategory,
-} from "../../api/categories.api";
-import {
-  showSuccessNotification,
-  showErrorNotification,
-} from "../../services/NotificationService";
+
+import Pagination from "../../components/Uitily/Pagination";
+import {GetAllCategories, AddCategory,DeleteCategory,UpdateCategory,} from "../../api/categories.api";
+import { showSuccessNotification, showErrorNotification,} from "../../services/NotificationService";
 import { Toaster } from "react-hot-toast";
 
 const CategoryList = () => {
+
   const [categories, setCategories] = useState([]);
   const [isAdd, setIsAdd] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [currentCategory, setCurrentCategory] = useState({
-    id: null,
-    name: "",
-    image: "",
-  });
+  const [currentCategory, setCurrentCategory] = useState({id: null,  name: "",  image: "", });// Stores the category being edited/delet
   const [isEdit, setIsEdit] = useState(false);
   const [isDelete, setIsDelete] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
-  const itemsPerPage = 5;
 
-  //go to the first page
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery]);
-
+  //Closes the modal and resets the state variables
   const handleClose = () => {
     setShowModal(false);
     setIsEdit(false);
@@ -46,13 +30,13 @@ const CategoryList = () => {
     setIsDelete(false);
     setCurrentCategory({ id: null, name: "", image: "" });
   };
-
+  //Shows the modal for adding a new category
   const handleShow = () => {
     setShowModal(true);
     setIsAdd(true);
     setIsEdit(false);
   };
-
+  //Shows the modal for editing an existing category
   const handleEdit = (category) => {
     setCurrentCategory(category);
     setIsEdit(true);
@@ -60,24 +44,17 @@ const CategoryList = () => {
     setShowModal(true);
   };
 
+  // ---------------------------------------------DELETE----------------------------------------------------
+  //Shows the modal for deleting an existing category
   const handleDelete = async (categoryToDelete) => {
-    // setCurrentCategory(category);
+    
+    setCurrentCategory(categoryToDelete); // Store the category to delete
     setIsDelete(true);
     setShowModal(true);
-    try {
-      await DeleteCategory(categoryToDelete.id);
-      setCategories(
-        categories.filter((category) => category.id !== categoryToDelete.id)
-      );
-    } catch (err) {
-      console.error("Error deleting category:", err.message);
-    }
 
-    setCategories(
-      categories.filter((category) => category.id !== categoryToDelete.id)
-    );
   };
 
+  //Confirms the deletion of a category
   const handleConfirmDelete = async () => {
     try {
       await DeleteCategory(currentCategory.id);
@@ -90,23 +67,33 @@ const CategoryList = () => {
       showErrorNotification("Failed to delete category.", err);
     }
   };
-
-  const handleSaveCategory = async (newCategory) => {
+//-------------------------------------ADD & EDIT ------------------------------------------
+  //Saves a new or edited category
+  const handleSaveCategory = async (categoryData) => {
     try {
-      const categoryData = { name: newCategory };
-
       if (isEdit) {
-        await UpdateCategory(currentCategory.id, categoryData);
+        const formData = new FormData();
+        formData.append("name", categoryData.get("name")); // Use get to access FormData values
+        if (categoryData.get("image")) {
+          formData.append("image", categoryData.get("image"));
+        }
+
+        await UpdateCategory(currentCategory.id, formData);
+
+        // after update
         const updatedCategories = categories.map((cat) =>
-          cat.id === currentCategory.id ? { ...cat, name: newCategory } : cat
+          cat.id === currentCategory.id
+            ? { ...cat, name: categoryData.get("name"), image: categoryData.get("image") ? URL.createObjectURL(categoryData.get("image")) : cat.image }
+            : cat
         );
         setCategories(updatedCategories);
+
         showSuccessNotification("Category updated successfully!");
       } else {
         const response = await AddCategory(categoryData);
         if (response.status === 201 || response.status === 200) {
           setCategories([...categories, response.data]);
-          showSuccessNotification("Category added successfully!");
+        
         } else {
           throw new Error("Failed to add category");
         }
@@ -118,6 +105,15 @@ const CategoryList = () => {
       showErrorNotification("Failed to save category.", err);
     }
   };
+  
+// --------------------------------------------search-----------------------------------------------------
+
+  const itemsPerPage = 5;
+
+//go to the first page
+useEffect(() => {
+  setCurrentPage(1);
+}, [searchQuery]);
 
   // Filter categories based on search query
   const filteredCategories = useMemo(() => {
@@ -130,7 +126,7 @@ const CategoryList = () => {
     const start = (currentPage - 1) * itemsPerPage;
     return filteredCategories.slice(start, start + itemsPerPage);
   }, [currentPage, filteredCategories]);
-
+// ---------------------------------------------fetch----------------------------------------------------
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -165,7 +161,7 @@ const CategoryList = () => {
               <Button
                 onClick={handleShow}
                 className="w-100"
-                style={{ backgroundColor: "#a1dee5d1", border: "none" }}
+                style={{ backgroundColor: "black", border: "none" }}
               >
                 Add New Category
               </Button>
@@ -238,23 +234,15 @@ const CategoryList = () => {
             />
           )}
 
-          {/* <EditCategory
-                        show={showModal}
-                        handleClose={handleClose}
-                        handleSaveCategory={handleSaveCategory}
-                        currentCategory={currentCategory}
-                        isEdit={isEdit}
-                        categories={categories}
-                    /> */}
           <EditCategory
             show={showModal && isEdit}
             handleClose={handleClose}
             handleSaveCategory={handleSaveCategory}
             currentCategory={currentCategory}
-            isEdit={isEdit}
+           
           />
           <AddNEWCategory
-            show={showModal && !isEdit}
+            show={showModal && isAdd}
             handleClose={handleClose}
             handleSaveCategory={handleSaveCategory}
           />

@@ -8,6 +8,7 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   grid-area: login;
   transition: all 0.3s ease; 
+  font-weight: bold;
 }
 
 .addUser:hover {
@@ -51,7 +52,7 @@
 .inputGroup button {
   margin-top: 20px; 
   padding: 12px;
-  background-color: #007bff; 
+  background-color: black; 
   color: white;
   border: none;
   border-radius: 5px;
@@ -60,7 +61,8 @@
 }
 
 .inputGroup button:hover {
-  background-color: #0056b3; 
+  background-color: #f0dfa8; 
+  color: black;
 }
 
 .inputGroup button:disabled {

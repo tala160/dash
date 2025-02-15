@@ -3,10 +3,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { resetPassword } from "../../redux/authSlice";
 import { Spinner } from "react-bootstrap";
 import "./login.css";
+import { useParams } from "react-router-dom"; 
 
-const ResetPassword = ({ token }) => {
+const ResetPassword = () => {
   const [newPassword, setNewPassword] = useState("");
   const dispatch = useDispatch();
+  const { token } = useParams(); // from url 
 
   const resetPasswordSuccess = useSelector(
     (state) => state.auth.resetPasswordSuccess
@@ -19,7 +21,7 @@ const ResetPassword = ({ token }) => {
     e.preventDefault();
     setIsPress(true);
     setLoading(true);
-    await dispatch(resetPassword({ token, newPassword }));
+    await dispatch(resetPassword({ token: token, newPassword: newPassword })); 
     setLoading(false);
     setIsPress(false);
     setNewPassword("");

@@ -1,8 +1,9 @@
-// OrderModal.js
 import React from 'react';
 import { Button, Form, Modal } from 'react-bootstrap';
 
-const OrderModal = ({ show, handleClose, handleSaveChanges, currentOrder, handleChange }) => {
+const OrderModal = ({ show, handleClose, handleSaveChanges, currentOrder, handleChange, originalOrder }) => {
+  const isChanged = currentOrder.total !== originalOrder?.total || currentOrder.status !== originalOrder?.status;
+
   return (
     <Modal show={show} onHide={handleClose}>
       <Modal.Header closeButton>
@@ -28,7 +29,7 @@ const OrderModal = ({ show, handleClose, handleSaveChanges, currentOrder, handle
               value={currentOrder.status} 
               onChange={handleChange}
             >
-              <option value="">Select order status</option> {/* Placeholder option */}
+              <option value="">Select order status</option>
               <option value="Pending">Pending</option>
               <option value="Shipped">Shipped</option>
               <option value="Delivered">Delivered</option>
@@ -41,7 +42,7 @@ const OrderModal = ({ show, handleClose, handleSaveChanges, currentOrder, handle
         <Button variant="secondary" onClick={handleClose}>
           Cancel
         </Button>
-        <Button variant="primary" onClick={handleSaveChanges}>
+        <Button variant="primary" onClick={handleSaveChanges} disabled={!isChanged} style={{ backgroundColor: "black", border: "none" }}>
           Save Changes
         </Button>
       </Modal.Footer>

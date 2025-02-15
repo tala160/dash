@@ -19,10 +19,14 @@ function Profile() {
 
   useEffect(() => {
     const storedUser = readUser();
-    if (storedUser) {
+    console.log("Stored User:", storedUser);
+    if (storedUser && storedUser.id && !isNaN(storedUser.id)) {
       setUser(storedUser);
       setName(storedUser.name || "");
       setEmail(storedUser.email || "");
+    } else {
+      console.error("Invalid user data in localStorage:", storedUser);
+      showErrorNotification("Invalid user data in localStorage.", "Load Profile");
     }
   }, []);
 
@@ -36,14 +40,23 @@ function Profile() {
 
   const handleEditClick = async () => {
     if (editMode) {
-      // حفظ التغييرات
       setLoading(true);
       setError(null);
       try {
+        if (!user || !user.id || isNaN(user.id)) {
+          console.error("User ID is missing or invalid!", user);
+          showErrorNotification("User ID is missing or invalid!", "Update Profile");
+          setLoading(false);
+          return;
+        }
+
         const updatedUserData = {
-          name: name,
-          email: email,
+          name: name || "",
+          email: email || "",
+          role: user.role || ""
         };
+        console.log("Updated User Data:", updatedUserData);
+        console.log("User ID:", user.id);
 
         const response = await Updateprofile(user.id, updatedUserData);
 
@@ -59,7 +72,7 @@ function Profile() {
           showErrorNotification("Failed to update profile.", "Update Profile");
         }
       } catch (error) {
-        console.error("Error updating profile:", error);
+        console.error("Error updating profile:", error.response ? error.response.data : error.message);
         showErrorNotification(
           "An error occurred while updating profile.",
           "Update Profile"
@@ -85,11 +98,11 @@ function Profile() {
               <div className="text-center">
                 <div className="mb-3">
                   <FaUser
-                    className="text-primary"
+                    className=""
                     style={{ fontSize: "5em" }}
                   />
                 </div>
-                <h3 className="mb-0 font-weight-bold text-primary">Profile</h3>
+                <h3 className="mb-0 font-weight-bold " style={{ color: "black" }}>Profile</h3>
                 {user && (
                   <>
                     <h5 className="mt-2">{user.name}</h5>
@@ -131,6 +144,7 @@ function Profile() {
                     className="btn btn-primary"
                     onClick={handleEditClick}
                     disabled={loading}
+                    style={{ backgroundColor: "black", border: "none" }}
                   >
                     {editMode ? (
                       loading ? (

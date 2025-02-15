@@ -7,23 +7,38 @@ const EditCategory = ({
   handleClose,
   handleSaveCategory,
   currentCategory,
-  //   isEdit,
+   
 }) => {
   const [category, setCategory] = useState(currentCategory.name);
   const [error, setError] = useState(null);
+  const [image, setImage] = useState(null);
 
   useEffect(() => {
     setCategory(currentCategory.name);
+    setImage(null); // Clear the image field initially
+    setError(null); // Clear any previous errors
   }, [currentCategory]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (category) {
-      handleSaveCategory(category);
+    if (!category) {
+      setError("Category Name is required");
+      return;
     }
-  };
 
+    setError(null); // Clear any previous errors
+
+    const formData = new FormData();
+    formData.append("name", category);
+
+    if (image) {
+      formData.append("image", image); // Append the new image if selected
+    }
+
+    handleSaveCategory(formData);
+    handleClose();
+  };
   return (
     <Modal show={show} onHide={handleClose}>
       <Modal.Header closeButton>
@@ -42,7 +57,15 @@ const EditCategory = ({
               required
             />
           </Form.Group>
-          <Button variant="primary" type="submit" className="mt-3 w-100">
+          <Form.Group controlId="formCategoryImage">
+            <Form.Label>Category Image (Optional)</Form.Label>
+            <Form.Control
+              type="file"
+              accept="image/*"
+              onChange={(e) => setImage(e.target.files[0])}
+            />
+          </Form.Group>
+          <Button variant="primary" type="submit" className="mt-3 w-100" style={{ backgroundColor: "black", border: "none" }}>
             Save Changes
           </Button>
         </Form>
@@ -60,7 +83,7 @@ EditCategory.propTypes = {
     name: PropTypes.string.isRequired,
     image: PropTypes.string,
   }).isRequired,
-  isEdit: PropTypes.bool.isRequired,
+  //  isEdit: PropTypes.bool.isRequired,
 };
 
 export default EditCategory;

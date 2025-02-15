@@ -32,7 +32,25 @@ const Signup = () => {
 
         setLoading(true);
         setError(null);
+        //validation
+        if (!name || name.length < 3) {
+            setError("Name must be at least 3 characters long.");
+            return;
+        }
 
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!email || !emailRegex.test(email)) {
+            setError("Please enter a valid email address.");
+            return;
+        }
+
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
+        if (!password || !passwordRegex.test(password)) {
+            setError("Password must be at least 8 characters long, include at least one uppercase letter, one lowercase letter, and one number.");
+            return;
+        }
+
+        setLoading(true);
         try {
             const userData = {
                 name: name,

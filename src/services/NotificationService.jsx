@@ -22,7 +22,7 @@ const displayNotification = (type, message, options = {}) => {
 
 export const showSuccessNotification = (message, title) => {
   displayNotification('success', message, {
-    duration: 2000, // Adjust as needed
+    duration: 5000, // Adjust as needed
     ariaProps: {
         role: 'status',
         'aria-live': 'polite',

@@ -12,8 +12,8 @@ import ForgetPassword from "./auth/login/ForgetPassword";
 import ResetPassword from "./auth/login/resetPassword";
 import ProductList from "./pages/products/ProductList";
 import Category from "./pages/categories/CategoryList";
-import Sidebar from "./components/Sidebar";
-import Header from "./components/Header";
+import Sidebar from "./components/Uitily/Sidebar";
+import Header from "./components/Uitily/Header";
 import Home from "./pages/Home";
 import OrderList from "./pages/orders/orderList";
 import Profile from './pages/Profile';
@@ -48,8 +48,8 @@ const Content = ({ OpenSidebar, openSidebarToggle }) => {
   const noHeaderAndSidebarRoutes = [
     "/login",
     "/",
-    "/forgetPassword",
-    "/resetPassword",
+    "/forget-password",
+    "/reset-Password",
   ];
 
   return (
@@ -66,8 +66,8 @@ const Content = ({ OpenSidebar, openSidebarToggle }) => {
       <Routes>
         <Route path="/" element={<Signup />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/forgetPassword" element={<ForgetPassword />} />
-        <Route path="/resetPassword" element={<ResetPassword />} />
+        <Route path="/forget-password" element={<ForgetPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/home" element={<Home />} />
         <Route path='/profile' element={<Profile/>}/>
         <Route path="/products" element={<ProductList />} />

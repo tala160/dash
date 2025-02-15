@@ -1,10 +1,13 @@
 import { useEffect, useState, useMemo } from "react";
-import 'bootstrap/dist/css/bootstrap.min.css';
+
 import { Button, Form, Container, Row, Col, Table } from 'react-bootstrap';
 import OrderModal from '../../components/Modals/OrderModal'; 
-import Pagination from '../../components/Pagination'; 
+import Pagination from '../../components/Uitily/Pagination'; 
 import { FaEdit } from 'react-icons/fa'; 
-import { GetAllorders, Updateorder } from "../../api/orders.api"; 
+import { GetAllorders, UpdateOrderPrice, UpdateOrderStatus } from "../../api/orders.api";
+
+import { showSuccessNotification, showErrorNotification,} from "../../services/NotificationService";
+import { Toaster } from "react-hot-toast";
 
 const OrderList = () => {
   const [orders, setOrders] = useState([]);
@@ -12,23 +15,9 @@ const OrderList = () => {
   const [currentOrder, setCurrentOrder] = useState({ id: null, total: '', status: '' });
   const [searchQuery, setSearchQuery] = useState(""); // Search state
   const [currentPage, setCurrentPage] = useState(1);
-
   const itemsPerPage = 5;
 
-  
-  useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const response = await GetAllorders();
-        setOrders(response.data); 
-      } catch (err) {
-        console.error("Error fetching orders:", err.message);
-      }
-    };
-
-    fetchOrders();
-  }, []);
-
+  //Closes the modal and resets the state variables
   const handleClose = () => {
     setShowModal(false);
     setCurrentOrder({ id: null, total: '', status: '' });
@@ -44,30 +33,59 @@ const OrderList = () => {
     setCurrentOrder({ ...currentOrder, [name]: value });
   };
 
-  const handleSaveChanges = async () => {
-    try {
-      await Updateorder(currentOrder.id, currentOrder); // استدعاء API لتحديث الطلب
-      setOrders(orders.map(order => 
-        order.id === currentOrder.id ? currentOrder : order
-      ));
-      handleClose();
-    } catch (error) {
-      console.error("Error updating order:", error.message);
+  //------------------------------------- EDIT ------------------------------------------
+const handleSaveChanges = async () => {
+  try {
+    const originalOrder = orders.find(o => o.id === currentOrder.id);
+    
+    if (currentOrder.total !== originalOrder.total) {
+      await UpdateOrderPrice(currentOrder.id, currentOrder.total);
     }
-  };
+    
+    if (currentOrder.status !== originalOrder.status) {
+      await UpdateOrderStatus(currentOrder.id, currentOrder.status);
+    }
+    
+    setOrders(orders.map(order => 
+      order.id === currentOrder.id ? {...order, ...currentOrder} : order
+    ));
+    
+    handleClose();
+    showSuccessNotification("Order updated successfully!");
+  } catch (error) {
+    console.error("Error updating order:", error.message);
+    showErrorNotification("Failed to update order.", error);
+  }
+};
+// ----------------------Fetch------------------------------------------
+// Fetch orders from the server on component mount
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const response = await GetAllorders();
+        setOrders(response.data); 
+      } catch (err) {
+        console.error("Error fetching orders:", err.message);
+      }
+    };
 
-  // إعادة تعيين الصفحة عند تغيير الاستعلام
+    fetchOrders();
+  }, []);
+
+// ----------------------search--------------------------------------------
+
+  // Reset page when search query changes
   useEffect(() => {
     setCurrentPage(1); 
   }, [searchQuery]);
 
-  // تصفية الطلبات بناءً على الاستعلام
+  // Filter orders based on search query
   const filteredOrders = orders.filter(order =>
     order.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     order.customer.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // الطلبات الحالية للعرض
+   // Current orders for display
   const currentOrders = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
     return filteredOrders.slice(start, start + itemsPerPage); // إرجاع الطلبات المصفاة للصفحة الحالية
@@ -75,6 +93,7 @@ const OrderList = () => {
 
   return (
     <Container className="my-5 main-container">
+        <Toaster position="top-right" reverseOrder={false} />
       <Row className="justify-content-center">
         <Col md={12}>
           <h1 className="text-center mb-4">Order List</h1>

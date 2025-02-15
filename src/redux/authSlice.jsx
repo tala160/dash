@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { httpApi } from "../api/http.api";
-import { persistToken, persistUser } from "../services/localStorage.service";
+import { persistToken, persistUser, deleteUser, deleteToken } from "../services/localStorage.service";
 
 // إعداد الحالة الأولية
 const initialState = {
@@ -18,7 +18,7 @@ export const loginUser = createAsyncThunk("auth/login", async (credentials) => {
   try {
     const response = await httpApi.post(
       "auth/login",
-      credentials, // Credentials (email and password) are sent in the body
+      credentials,
       {
         headers: {
           "Content-Type": "application/json",
@@ -30,7 +30,6 @@ export const loginUser = createAsyncThunk("auth/login", async (credentials) => {
 
     return response.data;
   } catch (error) {
-    // Handle errors more gracefully
     console.error(
       "Login failed:",
       error.response ? error.response.data : error.message
@@ -66,20 +65,21 @@ export const signupUser = createAsyncThunk("auth/signup", async (userData) => {
   }
 });
 
-// دالة نسيان كلمة المرور
+// forgetPassword
 export const forgetPassword = createAsyncThunk(
-  "auth/forgetPassword",
+  "auth/forget-Password",
   async (email) => {
     try {
       const response = await httpApi.post(
         "auth/forget-password",
-        { email }, // Email is sent in the body
+        { email },
         {
           headers: {
             "Content-Type": "application/json",
           },
         }
       );
+      console.log (response.data)
       return response.data;
     } catch (error) {
       console.error(
@@ -95,22 +95,22 @@ export const forgetPassword = createAsyncThunk(
   }
 );
 
-// دالة إعادة تعيين كلمة المرور
+// resetPassword
 export const resetPassword = createAsyncThunk(
-  "auth/resetPassword",
+  "auth/reset-password",
   async ({ token, newPassword }) => {
     try {
       const response = await httpApi.post(
         `auth/reset-password/${token}`,
-        { newPassword }, // New password is sent in the body
+        { newPassword },
         {
           headers: {
             "Content-Type": "application/json",
           },
         }
       );
-
-      return response.data; // تأكد من أن الخادم يعيد رسالة نجاح
+      
+      return response.data;
     } catch (error) {
       console.error(
         "Reset password failed:",
@@ -130,14 +130,17 @@ const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    logout(state, action) {
+    logout(state) {
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
       state.forgetPasswordSuccess = false;
       state.resetPasswordSuccess = false;
       state.error = null; // Clear error on logout
-      state.token = action.payload.token;
+
+      // حذف بيانات المستخدم والتوكن من localStorage
+      deleteUser();
+      deleteToken();
     },
   },
   extraReducers: (builder) => {
@@ -208,3 +211,4 @@ const authSlice = createSlice({
 export const { logout } = authSlice.actions;
 
 export default authSlice.reducer;
+

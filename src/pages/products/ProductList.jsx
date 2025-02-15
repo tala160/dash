@@ -1,189 +1,161 @@
-import { useEffect, useState, useMemo, useCallback } from "react";
-import "bootstrap/dist/css/bootstrap.min.css";
-import { Button, Form, Row, Col } from "react-bootstrap";
-import {
-  GetAllProducts,
-  AddNewProduct,
-  UpdateProduct,
-  DeleteProduct,
-} from "../../api/products.api";
-import { GetAllCategories } from "../../api/categories.api";
+import { useState, useMemo, useEffect } from "react";
+import { Button, Row, Col, Form, Table } from "react-bootstrap";
+import { FaEdit, FaTrash } from "react-icons/fa";
 
-import AddProduct from "../../components/Modals/Product/AddProduct";
 import EditProduct from "../../components/Modals/Product/EditProduct";
+import AddProduct from "../../components/Modals/Product/AddProduct";
 import DeleteModal from "../../components/Modals/DeleteModal";
 
-import Pagination from "../../components/Pagination";
-import { FaEdit, FaTrash } from "react-icons/fa";
-import {
-  showSuccessNotification,
-  showErrorNotification,
-} from "../../services/NotificationService";
+import Pagination from "../../components/Uitily/Pagination";
+import { GetAllCategories } from "../../api/categories.api";
+import {GetAllProducts, AddNewProduct,  UpdateProduct,  DeleteProduct,} from "../../api/products.api";
+import {  showSuccessNotification,  showErrorNotification,} from "../../services/NotificationService";
 import { Toaster } from "react-hot-toast";
 
 const ProductList = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const itemsPerPage = 5;
-  const [currentPage, setCurrentPage] = useState(1);
+  const [isAdd, setIsAdd] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [currentProduct, setCurrentProduct] = useState({
     id: null,
-    title: "",
-    price: "",
-    qa: "",
-    category: "",
+    name: "",
+    price: 0,
+    categoryId: null,
     images: [],
-  });
+  }); 
+  // Stores the Product being edited/deleted
+  const [isEdit, setIsEdit] = useState(false);
+  const [isDelete, setIsDelete] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const [productToDelete, setProductToDelete] = useState(null);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [loading, setLoading] = useState(true);
+  //Closes the modal and resets the state variables
+  function handleClose() {
+    setShowModal(false);
+    setIsEdit(false);
+    setIsAdd(false);
+    setIsDelete(false);
+    setCurrentProduct({ id: null, name: "", price: 0, categoryId: null, images: [] });
+  }
+  //Shows the modal for adding a new Product
+  const handleShow = () => {
+    setShowModal(true);
+    setIsAdd(true);
+    setIsEdit(false);
+    setCurrentProduct({ id: null, name: "", price: 0, categoryId: null, images: [] });
+  };
+  //Shows the modal for editing an existing Product
+  const handleEdit = (product) => {
+    setCurrentProduct(product);
+    setIsEdit(true);
+    setIsAdd(false);
+    setShowModal(true);
+  };
+//-------------------------------------ADD & EDIT ------------------------------------------
+  //Saves a new or edited Product
+  const handleSaveProduct = async (formData) => {
+    console.log("Received formData in handleSaveProduct:", formData)
+  try {
+    if (isEdit) {
+      // For editing an existing product
+      formData.append('id', currentProduct.id);
+      const productId = formData.get('id'); 
+      await UpdateProduct(productId, formData);
+      setProducts(prevProducts =>
+        prevProducts.map(p => (p.id === productId ? { ...p, ...Object.fromEntries(formData) } : p))
+      );
+      showSuccessNotification("Product updated successfully!");
+    } else {
+      // For adding a new product
+      const response = await AddNewProduct(formData);
+      if (response.status === 201 || response.status === 200) {
+        setProducts(prevProducts => [...prevProducts, response.data]);
+       
+      } else {
+        throw new Error("Failed to add Product");
+      }
+    }
+    handleClose();
+    showSuccessNotification("Product added successfully!");
+  } catch (err) {
+    showErrorNotification("Failed to save Product.", err.message);
+    console.error("Failed to save product:", err.message);
+  }
+  }
+// ---------------------------------------------DELETE----------------------------------------------------
 
+  //Shows the modal for deleting an existing Product
+  const handleDelete = async (productToDelete) => {
+    setCurrentProduct(productToDelete); // Store the category to delete
+    setIsDelete(true);
+    setShowModal(true);
+  };
+  //Confirms the deletion of a Product
+  const handleConfirmDelete = async () => {
+    try {
+      await DeleteProduct(currentProduct.id);
+      setProducts(
+        products.filter((Product) => Product.id !== currentProduct.id)
+      );
+      showSuccessNotification("Product deleted successfully!");
+      handleClose();
+    } catch (err) {
+      showErrorNotification("Failed to delete Product.", err);
+      showErrorNotification("Failed to delete Product.", err.message);
+    }
+  };
+
+
+// ------------------------------------------SEARCH-------------------------------------------------------
+
+  const itemsPerPage = 5;
+
+  //go to the first page
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery]);
 
-  const handleCloseAddModal = () => setShowAddModal(false);
-  const handleCloseEditModal = () => setShowEditModal(false);
-  const handleCloseDeleteModal = () => {
-    setShowDeleteModal(false);
-    setProductToDelete(null);
-  };
-
-  const handleShowAddModal = () => setShowAddModal(true);
-  const handleShowEditModal = (product) => {
-    setCurrentProduct(product);
-    setShowEditModal(true);
-  };
-  const handleShowDeleteModal = (id) => {
-    setProductToDelete(id);
-    setShowDeleteModal(true);
-  };
-
-  const handlePageChange = (pageNumber) => setCurrentPage(pageNumber);
+  // Filter products based on search query
+  const filteredProducts = useMemo(() => {
+    return products.filter((product) =>
+      product.title.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [products, searchQuery]);
 
   const currentProducts = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
-    const filteredProducts = products.filter((product) =>
-      product.title.toLowerCase().includes(searchQuery.toLowerCase())
-    );
     return filteredProducts.slice(start, start + itemsPerPage);
-  }, [currentPage, products, searchQuery]);
-
-  const fetchProducts = useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await GetAllProducts();
-      setProducts(response.data);
-    } catch (err) {
-      showErrorNotification("Failed to load products.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const fetchCategories = useCallback(async () => {
-    try {
-      const response = await GetAllCategories();
-      setCategories(response.data);
-    } catch (err) {
-      showErrorNotification("Failed to load categories.");
-    }
-  }, []);
-
+  }, [currentPage, filteredProducts]);
+// ---------------------------------------------FETCH----------------------------------------------------
+  // fetch Categories
   useEffect(() => {
-    fetchProducts();
-    fetchCategories();
-  }, [fetchProducts, fetchCategories]);
-
-  const handleSaveProduct = async (product) => {
-    try {
-      if (product.id) {
-        await UpdateProduct(product.id, product);
-        setProducts((prevProducts) =>
-          prevProducts.map((p) => (p.id === product.id ? product : p))
-        );
-        showSuccessNotification("Product updated successfully!");
-        handleCloseEditModal();
-      } else {
-        const response = await AddNewProduct(product);
-        if (response.status === 201 || response.status === 200) {
-          setProducts((prevProducts) => [...prevProducts, response.data]);
-          showSuccessNotification("Product added successfully!");
-          handleCloseAddModal();
-        } else {
-          throw new Error("Failed to add product");
-        }
+    const fetchCategories = async () => {
+      try {
+        const response = await GetAllCategories();
+        setCategories(response.data);
+      } catch (err) {
+        console.error("Error fetching categories:", err.message);
+        showErrorNotification("Failed to fetch categories.", err.message);
       }
-    } catch (error) {
-      showErrorNotification(error.message);
-    }
-  };
+    };
 
-  const handleDelete = async () => {
-    try {
-      if (!productToDelete) return;
+    fetchCategories();
+  }, []);
 
-      await DeleteProduct(productToDelete);
-      setProducts((prevProducts) =>
-        prevProducts.filter((product) => product.id !== productToDelete)
-      );
-      showSuccessNotification("Product deleted successfully!");
-      handleCloseDeleteModal();
-    } catch (err) {
-      showErrorNotification("Failed to delete product.");
-    }
-  };
+  // fetch Products
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await GetAllProducts();
+        setProducts(response.data);
+      } catch (err) {
+        console.error("Error fetching products:", err.message);
+      }
+    };
 
-  const renderedProducts = useMemo(() => {
-    return currentProducts.map((product) => (
-      <tr key={product.id}>
-        <td>{product.title}</td>
-        <td>{product.price}</td>
-        <td>{product.qa}</td>
-        <td>{product.category}</td>
-        <td>
-          <div className="d-flex">
-            {product.images &&
-              product.images.map((image, index) =>
-                image ? (
-                  <img
-                    key={index}
-                    src={image}
-                    alt={`Product Image ${index + 1}`}
-                    style={{
-                      width: "50px",
-                      height: "50px",
-                      objectFit: "cover",
-                      borderRadius: "5px",
-                      marginRight: "5px",
-                    }}
-                  />
-                ) : null
-              )}
-          </div>
-        </td>
-        <td>
-          <Button
-            variant="warning"
-            className="me-2"
-            onClick={() => handleShowEditModal(product)}
-          >
-            <FaEdit />
-          </Button>
-          <Button
-            variant="danger"
-            onClick={() => handleShowDeleteModal(product.id)}
-          >
-            <FaTrash />
-          </Button>
-        </td>
-      </tr>
-    ));
-  }, [currentProducts]);
+    fetchProducts();
+  }, []);
 
   return (
     <div className="my-5 main-container">
@@ -191,13 +163,12 @@ const ProductList = () => {
       <Row>
         <Col md={12}>
           <h1 className="text-center mb-4">Product List</h1>
-
           <Row className="mb-3">
             <Col md={8}>
               <Form.Group controlId="search" className="mb-0">
                 <Form.Control
                   type="text"
-                  placeholder="Search by product name"
+                  placeholder="Search by Product name"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -205,32 +176,71 @@ const ProductList = () => {
             </Col>
             <Col md={4}>
               <Button
-                onClick={handleShowAddModal}
+                onClick={handleShow}
                 className="w-100"
-                style={{ backgroundColor: "#a1dee5d1", border: "none" }}
+                style={{ backgroundColor: "black", border: "none" }}
               >
                 Add New Product
               </Button>
             </Col>
           </Row>
 
-          {loading ? (
-            <p>Loading...</p>
-          ) : renderedProducts.length > 0 ? (
+          {currentProducts.length > 0 ? (
             <div className="table-responsive">
-              <table className="table table-striped table-bordered table-hover">
+              <Table striped bordered hover responsive>
                 <thead>
                   <tr>
-                    <th>Name</th>
+                    <th>Product Name</th>
+                    <th>Image</th>
                     <th>Price</th>
-                    <th>QA</th>
                     <th>Category</th>
-                    <th>Images</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
-                <tbody>{renderedProducts}</tbody>
-              </table>
+                <tbody>
+                  {currentProducts.map((product) => (
+                    <tr key={product.id}>
+                      <td>{product.name}</td>
+                      <td>
+                        {product.images && product.images.length > 0 && (
+                          <img
+                            src={product.images[0]}
+                            alt={product.name}
+                            style={{
+                              width: "50px",
+                              height: "50px",
+                              objectFit: "cover",
+                              borderRadius: "5px",
+                              boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                            }}
+                          />
+                        )}
+                      </td>
+                      <td>{product.price}</td>
+                      
+                      <td>{categories.find(c => c.id === product.categoryId)?.name || 'N/A'}</td>
+                      <td>
+                        <Button
+                          variant="warning"
+                          size="sm"
+                          className="me-2"
+                          onClick={() => handleEdit(product)}
+                        >
+                          <FaEdit />
+                        </Button>
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          onClick={() => handleDelete(product)}
+                        >
+                          <FaTrash />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+
+              </Table>
             </div>
           ) : (
             <p className="text-center">
@@ -238,33 +248,35 @@ const ProductList = () => {
             </p>
           )}
 
-          {products.length > 0 && (
+          {filteredProducts.length > itemsPerPage && (
             <Pagination
-              totalItems={products.length}
+              totalItems={filteredProducts.length}
               itemsPerPage={itemsPerPage}
               currentPage={currentPage}
-              onPageChange={handlePageChange}
+              onPageChange={setCurrentPage}
             />
           )}
 
+            {/* {currentProduct && currentProduct.categoryId !== null && isEdit && ( */}
+              {/* <EditProduct
+                show={showModal && isEdit}
+                handleClose={handleClose}
+                handleSaveProduct={handleSaveProduct}
+                categories={categories}
+                product={currentProduct}
+              /> */}
+            {/* )} */}
           <AddProduct
-            show={showAddModal}
-            handleCloseModal={handleCloseAddModal}
+            show={showModal && isAdd}
+            handleClose={handleClose}
             handleSaveProduct={handleSaveProduct}
             categories={categories}
-          />
-          <EditProduct
-            show={showEditModal}
-            handleCloseModal={handleCloseEditModal}
-            handleSaveProduct={handleSaveProduct}
-            categories={categories}
-            product={currentProduct}
           />
           <DeleteModal
-            show={showDeleteModal}
-            handleCloseModal={handleCloseDeleteModal}
-            handleDelete={handleDelete}
-            itemName="product"
+            show={showModal && isDelete}
+            handleClose={handleClose}
+            handleDelete={handleConfirmDelete}
+            itemName="Product"
           />
         </Col>
       </Row>
@@ -273,3 +285,4 @@ const ProductList = () => {
 };
 
 export default ProductList;
+
